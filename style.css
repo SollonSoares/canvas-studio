@@ -1,0 +1,212 @@
+:root {
+  /* Dark Mode como padrão */
+  --bg-main: #1c1c1e;
+  --bg-menu: rgba(44, 44, 46, 0.8);
+  --text-main: #f5f5f7;
+  --accent: #0a84ff;
+  --canvas-grid: #2c2c2e;
+  --radius: 12px;
+}
+
+.light-mode {
+  --bg-main: #f5f5f7;
+  --bg-menu: rgba(255, 255, 255, 0.8);
+  --text-main: #1d1d1f;
+  --accent: #0071e3;
+  --canvas-grid: #e2e2e6;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overflow: hidden;
+  background: var(--bg-main);
+  color: var(--text-main);
+  transition: background 0.3s;
+}
+
+.layout-wrapper {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Dashboard */
+#dashboard-menu {
+  width: 250px;
+  background: var(--bg-menu);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(0, 0, 0, 0.05);
+  padding: 20px;
+  transition: width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+#dashboard-menu.collapsed {
+  width: 60px;
+  padding: 20px 5px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+/* Garante que elementos filhos desapareçam ao colapsar */
+#dashboard-menu.collapsed .brand,
+#dashboard-menu.collapsed .menu-group,
+#dashboard-menu.collapsed .menu-label {
+  display: none !important;
+}
+
+/* Centraliza o botão no topo quando colapsado */
+#toggle-sidebar {
+  font-size: 20px;
+  margin-bottom: 20px;
+}
+
+/* Canvas */
+#canvas {
+  flex: 1;
+  position: relative;
+  overflow: auto;
+  background-image: radial-gradient(
+    circle,
+    var(--canvas-grid) 1px,
+    transparent 1px
+  );
+  background-size: 20px 20px;
+}
+
+/* Blocos */
+.draggable {
+  position: absolute;
+  background: var(--bg-menu);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(128, 128, 128, 0.2);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  min-width: 180px;
+  border-radius: var(--radius);
+  z-index: 10;
+  overflow: hidden;
+  color: var(--text-main);
+}
+
+.draggable img {
+  max-width: 100%;
+  max-height: 400px;
+  object-fit: contain;
+  display: block;
+}
+
+.drag-handle {
+  background: rgba(128, 128, 128, 0.1);
+  color: var(--text-main);
+  padding: 10px;
+  cursor: move;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 500;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.1);
+}
+
+.title-input {
+  flex-grow: 1;
+  margin: 0 10px;
+  background: none;
+  border: none;
+  color: var(--text-main);
+  font-weight: 600;
+  outline: none;
+}
+
+.lista-campos {
+  padding: 10px;
+}
+
+.sub-campo {
+  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+  padding: 8px;
+  cursor: text;
+  min-height: 20px;
+  color: var(--text-main);
+}
+
+.sub-campo.classe-titulo {
+  font-size: 20px !important;
+  font-weight: bold;
+  border-bottom: 2px solid var(--accent);
+}
+
+.sub-campo.classe-conteudo {
+  font-size: 14px !important;
+}
+
+.sub-campo.classe-num {
+  font-size: 24px !important;
+  font-family: -apple-system, monospace;
+  text-align: center;
+}
+
+button {
+  background: rgba(128, 128, 128, 0.1);
+  border: none;
+  color: var(--accent);
+  padding: 10px;
+  width: 100%;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  margin: 4px 0;
+  transition: background 0.2s;
+}
+
+button:hover {
+  background: rgba(128, 128, 128, 0.2);
+}
+
+.wysiwyg-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+
+/* Limpeza: Garante que propriedades genéricas não vazem para o switch */
+.apple-switch {
+  /* Reseta estilos genéricos de botões */
+  width: 50px;
+  height: 30px;
+  padding: 0;
+  margin: 4px 0;
+  border: none;
+  border-radius: 15px;
+  background: #39393d;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.3s ease;
+  /* Garante que o conteúdo respeite o tamanho */
+  display: flex;
+  align-items: center;
+}
+
+.apple-switch .thumb {
+  width: 26px;
+  height: 26px;
+  background: #ffffff;
+  border-radius: 50%;
+  position: absolute;
+  left: 2px;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Estado ativo (especificidade alta pelo ID ou classe) */
+#btn-theme.active {
+  background: #34c759;
+}
+
+#btn-theme.active .thumb {
+  transform: translateX(20px);
+}
+
+

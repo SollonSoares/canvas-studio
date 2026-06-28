@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="style.css">
+  <title>Canvas Studio</title>
+</head>
+
+<body>
+  <div class="layout-wrapper">
+    <aside id="dashboard-menu">
+      <button id="toggle-sidebar" class="btn-ghost">☰</button>
+      <div class="brand">
+        <h1>Naruto RPG
+      </div>
+
+      <div class="menu-group">
+        <span class="menu-label">FILTRO</span>
+        <input type="text" id="input-search" placeholder="Buscar conteúdo..." style="width: 100%; padding: 8px; background: #333; color: #fff; border: none; border-radius: 4px; box-sizing: border-box;">
+      </div>
+
+      <div class="menu-group">
+
+        <nav id="nav-controls">
+       
+          <div class="menu-group">
+            <span class="menu-label">PÁGINA VISUAL</span>
+            <button id="btn-theme" class="apple-switch">
+              <span class="thumb"></span>
+            </button>
+            <span class="switch-text" style="font-size: 10px; display: block; margin-top: 4px;">Dark / Light</span>
+          </div>
+
+          <div style="display: flex; gap: 5px;">
+            <input type="number" id="input-canvas-w" placeholder="Largura (px)" style="width: 50%; padding: 8px; background: #333; color: #fff; border: none; border-radius: 4px; font-size: 12px;">
+            <input type="number" id="input-canvas-h" placeholder="Altura (px)" style="width: 50%; padding: 8px; background: #333; color: #fff; border: none; border-radius: 4px; font-size: 12px;">
+          </div>
+          <button id="btn-apply-size" style="margin-top: 5px;">Aplicar Dimensões</button>
+      </div>
+
+      <div class="menu-group">
+        <span class="menu-label">GERENCIAMENTO</span>
+        <button id="btn-add">Adicionar Bloco</button>
+        <button id="btn-add-img">Importar Imagem</button>
+        <button id="btn-import">Importar JSON</button>
+        <button id="btn-export">Exportar JSON</button>
+      </div>
+
+      <div class="menu-group">
+        <span class="menu-label">EDIÇÃO DE TEXTO</span>
+        <div class="wysiwyg-grid">
+          <button onmousedown="event.preventDefault()" onclick="window.formatarTexto('b')">B</button>
+          <button onmousedown="event.preventDefault()" onclick="window.formatarTexto('i')">I</button>
+          <button onmousedown="event.preventDefault()" onclick="window.formatarTexto('u')">U</button>
+          <button onmousedown="event.preventDefault()" onclick="window.ajustarFonte(1)">A+</button>
+          <button onmousedown="event.preventDefault()" onclick="window.ajustarFonte(-1)">A-</button>
+        </div>
+        <button onmousedown="event.preventDefault()" onclick="window.aplicarEstilo('classe-titulo')">Título</button>
+        <button onmousedown="event.preventDefault()" onclick="window.aplicarEstilo('classe-conteudo')">Conteúdo</button>
+        <button onmousedown="event.preventDefault()" onclick="window.aplicarEstilo('classe-num')">Numérico</button>
+      </div>
+      </nav>
+    </aside>
+    <main id="canvas"></main>
+  </div>
+  <script src="script.js"></script>
+</body>
+
+</html>
+
