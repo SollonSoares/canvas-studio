@@ -59,9 +59,9 @@ function adicionarImagem(id, src, top, left) {
       div.style.top =
         Math.round((ev.pageY - sy) / GRID_SIZE) * GRID_SIZE + "px";
     };
-    document.addEventListener("mousemove", move);
-    document.onmouseup = () => {
+    const handleUp = () => {
       document.removeEventListener("mousemove", move);
+      document.removeEventListener("mouseup", handleUp);
       localStorage.setItem(
         "data_" + id,
         JSON.stringify({
@@ -72,6 +72,8 @@ function adicionarImagem(id, src, top, left) {
         })
       );
     };
+    document.addEventListener("mousemove", move);
+    document.addEventListener("mouseup", handleUp);
   };
   canvas.appendChild(div);
 }
@@ -144,11 +146,13 @@ function criarBloco(id, style, data) {
       div.style.top =
         Math.round((ev.pageY - sy) / GRID_SIZE) * GRID_SIZE + "px";
     };
-    document.addEventListener("mousemove", move);
-    document.onmouseup = () => {
+    const handleUp = () => {
       document.removeEventListener("mousemove", move);
+      document.removeEventListener("mouseup", handleUp);
       salvarBloco(div);
     };
+    document.addEventListener("mousemove", move);
+    document.addEventListener("mouseup", handleUp);
   };
   data?.campos?.forEach((c) => {
     const f = document.createElement("div");
