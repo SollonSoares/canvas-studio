@@ -54,7 +54,6 @@ body {
   align-items: center;
 }
 
-/* Correção de especificidade: oculta elementos específicos sem quebrar o contêiner do rodapé */
 #dashboard-menu.collapsed .brand,
 #dashboard-menu.collapsed .menu-group,
 #dashboard-menu.collapsed .menu-label,
@@ -222,15 +221,29 @@ button:active {
   border: 1px solid rgba(128, 128, 128, 0.25);
   box-shadow: 0 10px 35px rgba(0, 0, 0, 0.3);
   min-width: 200px;
+  min-height: 100px;
   border-radius: var(--radius);
   z-index: 10;
-  overflow: hidden;
+  box-sizing: border-box;
+  overflow: visible; /* PERMITE QUE A ALÇA DE RESIZE TRANSBORDE A BORDA FÍSICA */
+}
+
+/* Container interno isolado para aplicar o arredondamento e clip das mídias */
+.draggable .image-wrapper,
+.draggable .chart-container,
+.draggable .lista-campos {
+  width: 100%;
+  height: calc(100% - 38px);
+  overflow: hidden; 
+  border-bottom-left-radius: var(--radius);
+  border-bottom-right-radius: var(--radius);
+  box-sizing: border-box;
 }
 
 .draggable img {
-  max-width: 100%;
-  max-height: 400px;
-  object-fit: contain;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   display: block;
 }
 
@@ -246,12 +259,11 @@ button:active {
 .title-input {
   flex-grow: 1;
   margin: 0 10px;
-  background: transparent !important;
-  border: none !important;
-  color: var(--text-main) !important;
+  background: transparent;
+  border: none;
+  color: var(--text-main);
   font-weight: 600;
   outline: none;
-  box-shadow: none !important;
 }
 
 .lista-campos {
@@ -267,17 +279,17 @@ button:active {
 }
 
 .sub-campo.classe-titulo {
-  font-size: 20px !important;
+  font-size: 20px;
   font-weight: bold;
   border-bottom: 2px solid var(--accent);
 }
 
 .sub-campo.classe-conteudo {
-  font-size: 14px !important;
+  font-size: 14px;
 }
 
 .sub-campo.classe-num {
-  font-size: 24px !important;
+  font-size: 24px;
   font-family: -apple-system, monospace;
   text-align: center;
 }
@@ -333,4 +345,26 @@ button:active {
   display: block;
   margin-bottom: 10px;
   letter-spacing: 0.5px;
+}
+
+/* ===== EXTENSÃO: ALÇA DE REDIMENSIONAMENTO GLOBAL (RESIZE) ===== */
+#canvas .draggable .resize-handle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background-color: var(--accent);
+  right: -4px;
+  bottom: -4px;
+  cursor: se-resize;
+  border-radius: 50%;
+  border: 2px solid var(--bg-main);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  transition: transform 0.1s ease, background-color 0.1s ease;
+  z-index: 9999;
+}
+
+#canvas .draggable .resize-handle:hover,
+#canvas .draggable .resize-handle:active {
+  transform: scale(1.3);
+  background-color: #ffffff;
 }

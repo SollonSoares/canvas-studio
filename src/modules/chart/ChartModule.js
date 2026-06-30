@@ -12,9 +12,6 @@ export default class ChartModule extends BaseModule {
     this.boundMoving = this.tratarMovimentacaoBloco.bind(this);
   }
 
-  /**
-   * Inicializa o módulo: Injeta o botão de criação na sidebar e assina canais de eventos.
-   */
   init() {
     const containerBotoes = document.getElementById("container-gerenciamento-botoes");
     if (containerBotoes) {
@@ -24,15 +21,10 @@ export default class ChartModule extends BaseModule {
       btnAddChart.onclick = () => this.criarBlocoGrafico();
       containerBotoes.appendChild(this.TRACK_UI(btnAddChart));
     }
-
-    // Assinaturas de eventos globais do ecossistema
     bus.on('search:query', this.boundSearch);
     bus.on('canvas:element-moving', this.boundMoving);
   }
 
-  /**
-   * Desativa o módulo limpando listeners pendentes.
-   */
   destroy() {
     super.destroy();
     bus.off('search:query', this.boundSearch);
@@ -40,19 +32,34 @@ export default class ChartModule extends BaseModule {
   }
 
   /**
-   * Regras de negócio dedutivas para normalização matemática de atributos RPG.
+   * Converte e normaliza de forma estrita os dados de entrada vindos do DOM ou do JSON.
    */
   calcularNotas(dados) {
-    let tai = (Number(dados.taijutsu || 0) / 10) + 0.5;
-    let nin = (Number(dados.ninjutsu || 0) / 10) + 0.5;
-    let gen = (Number(dados.genjutsu || 0) / 10) + 0.5;
-    let vig = Number(dados.vigor || 0) + 0.5;
-    let int = Number(dados.inteligencia || 0) + 0.5;
-    let chk = (Number(dados.chakraMax || 10) - 6) / 10;
+    // Função auxiliar para discernir se o valor inserido é a porcentagem bruta (0-100) ou a nota final ja processada (0.5-8.0)
+    const extrairNotaPorcentagem = (valor) => {
+      let num = Number(valor || 0);
+      if (num > 8.0) {
+        return (num / 10) + 0.5; // Converte escala 0-100 para 0.5-8.0
+      }
+      return num; // Mantém caso já seja a nota final vinda do JSON antigo
+    };
 
-    // Normalização defensiva caso o valor do chakra já venha escalado do JSON antigo
-    if (dados.chakraMax <= 10 && dados.chakraMax > 0) {
-      chk = Number(dados.chakraMax);
+    let tai = extrairNotaPorcentagem(dados.taijutsu);
+    let nin = extrairNotaPorcentagem(dados.ninjutsu);
+    let gen = extrairNotaPorcentagem(dados.genjutsu);
+    
+    let vig = Number(dados.vigor || 0);
+    let int = Number(dados.inteligencia || 0);
+    
+    // Tratamento dedutivo para o Chakra: se for maior que 10, é o valor bruto de porcentagem. Se for entre 6 e 10, aplica formula.
+    let rawChakra = Number(dados.chakraMax || dados.chakra || 6);
+    let chk = 0.5;
+    if (rawChakra > 10) {
+      chk = ((rawChakra - 6) / 10);
+    } else if (rawChakra >= 6) {
+      chk = (rawChakra - 6) / 10;
+    } else {
+      chk = rawChakra; // Já veio calculado como nota final (ex: 0.5 a 8.0) do backup antigo
     }
 
     const ajustarNota = (nota) => {
@@ -75,9 +82,6 @@ export default class ChartModule extends BaseModule {
     return parseFloat((soma / 6).toFixed(1));
   }
 
-  /**
-   * Renderização matemática pura de eixos e polígonos sobre o elemento Canvas interno.
-   */
   desenharGrafico(canvasElement, notas) {
     const ctx = canvasElement.getContext('2d');
     if (!ctx) return;
@@ -98,7 +102,6 @@ export default class ChartModule extends BaseModule {
       { nome: "GEN", valor: notas.genjutsu }
     ];
 
-    // 1. Desenho teias guia polygonais
     const niveisGuia = [2, 4, 6, 8];
     ctx.strokeStyle = "rgba(128, 128, 128, 0.25)";
     ctx.lineWidth = 1;
@@ -117,7 +120,6 @@ export default class ChartModule extends BaseModule {
       ctx.stroke();
     });
 
-    // 2. Desenho de eixos radiais e rotulagem textual adaptativa ao Tema
     ordemEixos.forEach((eixo, i) => {
       const angulo = (i * Math.PI / 3) - Math.PI / 2;
       const xPonta = centroX + raioMaximo * Math.cos(angulo);
@@ -142,7 +144,6 @@ export default class ChartModule extends BaseModule {
       ctx.fillText(`${eixo.nome} (${eixo.valor.toFixed(1)})`, xTexto, yTexto);
     });
 
-    // 3. Traçado da área preenchida do polígono de dados
     ctx.beginPath();
     ordemEixos.forEach((eixo, i) => {
       const angulo = (i * Math.PI / 3) - Math.PI / 2;
@@ -162,9 +163,6 @@ export default class ChartModule extends BaseModule {
     ctx.stroke();
   }
 
-  /**
-   * Instancia a estrutura DOM do bloco de Gráfico e vincula listeners locais.
-   */
   criarBloco(id = null, style = null, dadosIniciais = null, tituloInicial = null) {
     this.criarBlocoGrafico(id, style, dadosIniciais, tituloInicial);
   }
@@ -174,8 +172,6 @@ export default class ChartModule extends BaseModule {
     if (!canvasContainer) return;
 
     const uid = id || "c_" + Date.now();
-    
-    // Evita duplicidade visual caso a reidratação tente renderizar o mesmo nó
     const blocoExistente = document.getElementById("block_" + uid);
     if (blocoExistente) blocoExistente.remove();
 
@@ -186,14 +182,13 @@ export default class ChartModule extends BaseModule {
     div.dataset.type = "chart";
     div.style.cssText = style || "top:100px; left:100px;";
 
-    // Fallback agressivo: mapeia .inputs, .status ou o próprio objeto raiz para suportar JSONs antigos
     const valores = dadosIniciais?.inputs || dadosIniciais?.status || (dadosIniciais && typeof dadosIniciais === 'object' && !dadosIniciais.type ? dadosIniciais : null) || { 
-      taijutsu: 1, 
-      ninjutsu: 1, 
-      genjutsu: 1, 
-      vigor: 1, 
-      inteligencia: 1, 
-      chakraMax: 10 
+      taijutsu: 0, 
+      ninjutsu: 0, 
+      genjutsu: 0, 
+      vigor: 0, 
+      inteligencia: 0, 
+      chakraMax: 6 
     };
 
     const titulo = tituloInicial || dadosIniciais?.title || "STATUS SHINOBI";
@@ -208,12 +203,12 @@ export default class ChartModule extends BaseModule {
         <canvas id="canvas_render_${uid}" width="200" height="200" style="background:transparent;"></canvas>
         <div class="media-display" style="font-weight:bold; margin: 5px 0; font-size:14px; color:var(--accent);">Média: <span class="media-val">0.0</span></div>
         <div class="chart-inputs-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:5px; font-size:11px; padding:5px;">
-          <label style="display:flex; gap:3px;"><input type="number" data-stat="ninjutsu" value="${valores.ninjutsu ?? 1}" min="1" max="100" style="width:40px; padding:3px;"> NIN</label>
-          <label style="display:flex; gap:3px;"><input type="number" data-stat="inteligencia" value="${valores.inteligencia ?? 1}" min="1" max="20" style="width:40px; padding:3px;"> INT</label>
-          <label style="display:flex; gap:3px;"><input type="number" data-stat="chakraMax" value="${valores.chakraMax ?? 10}" style="width:40px; padding:3px;"> CHK</label>
-          <label style="display:flex; gap:3px;"><input type="number" data-stat="taijutsu" value="${valores.taijutsu ?? 1}" min="1" max="100" style="width:40px; padding:3px;"> TAI</label>
-          <label style="display:flex; gap:3px;"><input type="number" data-stat="vigor" value="${valores.vigor ?? 1}" min="1" max="20" style="width:40px; padding:3px;"> VIG</label>
-          <label style="display:flex; gap:3px;"><input type="number" data-stat="genjutsu" value="${valores.genjutsu ?? 1}" min="1" max="100" style="width:40px; padding:3px;"> GEN</label>
+          <label style="display:flex; gap:3px;"><input type="number" data-stat="ninjutsu" value="${valores.ninjutsu ?? 0}" min="0" max="100" style="width:40px; padding:3px;"> NIN</label>
+          <label style="display:flex; gap:3px;"><input type="number" data-stat="inteligencia" value="${valores.inteligencia ?? 0}" min="0" max="20" style="width:40px; padding:3px;"> INT</label>
+          <label style="display:flex; gap:3px;"><input type="number" data-stat="chakraMax" value="${valores.chakraMax ?? valores.chakra ?? 6}" style="width:40px; padding:3px;"> CHK</label>
+          <label style="display:flex; gap:3px;"><input type="number" data-stat="taijutsu" value="${valores.taijutsu ?? 0}" min="0" max="100" style="width:40px; padding:3px;"> TAI</label>
+          <label style="display:flex; gap:3px;"><input type="number" data-stat="vigor" value="${valores.vigor ?? 0}" min="0" max="20" style="width:40px; padding:3px;"> VIG</label>
+          <label style="display:flex; gap:3px;"><input type="number" data-stat="genjutsu" value="${valores.genjutsu ?? 0}" min="0" max="100" style="width:40px; padding:3px;"> GEN</label>
         </div>
       </div>
     `;
@@ -253,11 +248,9 @@ export default class ChartModule extends BaseModule {
       div.remove();
     };
 
-    // Vincula o motor de arrasto do Core
     window.CanvasManager.makeDraggable(div, () => atualizarEGravar());
     canvasContainer.appendChild(div);
     
-    // Força um ciclo macro-task para garantir renderização síncrona do contexto gráfico
     setTimeout(atualizarEGravar, 0);
   }
 

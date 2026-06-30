@@ -12,6 +12,7 @@ import PortabilityModule from '../modules/portability/PortabilityModule.js';
 import TextModule from '../modules/text/TextModule.js';
 import ImageModule from '../modules/image/ImageModule.js';
 import ChartModule from '../modules/chart/ChartModule.js';
+import ResizeModule from '../modules/resize/ResizeModule.js';
 
 // Expõe os contratos e utilitários globais no escopo do navegador (window)
 window.BaseModule = BaseModule;
@@ -21,52 +22,35 @@ class AppEngine {
   constructor() {
     this.registry = new Map();
     
-    // Estado de ativação inicial (padrão ativo para todos os componentes)
     this.modulesState = JSON.parse(localStorage.getItem('app_modules_state')) || {
       portability: true,
       text: true,
       image: true,
-      chart: true
+      chart: true,
+      resize: true
     };
   }
 
-  /**
-   * Ponto de ignição assíncrono do sistema.
-   */
   async run() {
     try {
-      // 1. Inicializa IndexedDB
       await dbManager.init();
-      
-      // 2. Registra e inicializa os módulos nativos
       this.instanciarModulosNativos();
-      
-      // 3. Vincula os elementos estruturais fixos da interface do CORE
       this.bindCoreUIEvents();
-      
-      // 4. Renderiza a listagem de checkboxes dentro do modal de configurações
       this.montarPainelModulosUI();
-      
-      // 5. Configura o interceptador de Upload de Novos Módulos (.js)
       this.configurarUploadDeModulos();
-      
-      // 6. Executa o loop de leitura de dados para renderizar blocos existentes
       this.carregarElementosCanvas();
     } catch (error) {
       console.error("Falha crítica na inicialização do Core Engine:", error);
     }
   }
 
-  /**
-   * Instancia e insere no registro os módulos padrões do sistema.
-   */
   instanciarModulosNativos() {
     this.registry.set('portability', new PortabilityModule());
     this.registry.set('text', new TextModule());
     this.registry.set('image', new ImageModule());
     this.registry.set('chart', new ChartModule());
+    this.registry.set('resize', new ResizeModule());
 
-    // Executa a inicialização apenas dos que estiverem marcados como ativos
     this.registry.forEach((instance, key) => {
       if (this.modulesState[key]) {
         instance.init();
@@ -74,9 +58,6 @@ class AppEngine {
     });
   }
 
-  /**
-   * Varre o mapa de registro de módulos e renderiza os controles de ativação (Checkboxes).
-   */
   montarPainelModulosUI() {
     const painel = document.getElementById("module-activation-panel");
     if (!painel) return;
@@ -112,7 +93,6 @@ class AppEngine {
       painel.appendChild(itemLinha);
     });
 
-    // Injeção do botão físico de aplicação (simulação do F5 pós-validação)
     const btnAplicarMudancas = document.createElement("button");
     btnAplicarMudancas.id = "btn-apply-modules";
     btnAplicarMudancas.innerText = "Aplicar";
@@ -133,9 +113,6 @@ class AppEngine {
     }
   }
 
-  /**
-   * Monitora e gerencia os elementos estáticos do DOM pertencentes ao CORE.
-   */
   bindCoreUIEvents() {
     const sideMenu = document.getElementById("dashboard-menu");
     const toggleSide = document.getElementById("toggle-sidebar");
@@ -211,9 +188,6 @@ class AppEngine {
     this.injetarBotaoLimparCanvas();
   }
 
-  /**
-   * Injeta dinamicamente o botão de reset total no container de gerenciamento.
-   */
   injetarBotaoLimparCanvas() {
     const container = document.getElementById("container-gerenciamento-botoes");
     if (!container) return;
@@ -226,7 +200,7 @@ class AppEngine {
     btnLimpar.style.border = "1px dashed rgba(255, 69, 58, 0.4)";
 
     btnLimpar.onclick = () => {
-      const confirmacao = confirm("⚠️ ATENÇÃO! Esta ação irá apagar TODOS os blocos e mídias do Canvas permanentemente. Não tem volta! Deseja continuar?");
+      const confirmacao = confirm("⚠️ ATENÇÃO! Esta ação irá apagar TODOS os blocos do Canvas permanentemente. Deseja continuar?");
       if (confirmacao) {
         this.executarResetTotal();
       }
@@ -235,19 +209,14 @@ class AppEngine {
     container.appendChild(btnLimpar);
   }
 
-  /**
-   * Expurga os dados do LocalStorage, limpa a ObjectStore do IndexedDB e limpa o DOM do Canvas.
-   */
   async executarResetTotal() {
     try {
-      // 1. Limpa blocos de dados do LocalStorage, preservando apenas estados de configuração do sistema
       Object.keys(localStorage).forEach(chave => {
         if (chave.startsWith("data_") && chave !== "data_brand_title" && chave !== "data_modules_state" && chave !== "app_modules_state") {
           localStorage.removeItem(chave);
         }
       });
 
-      // 2. Limpa o ObjectStore de imagens no IndexedDB de forma assíncrona
       if (dbManager.db) {
         const tx = dbManager.db.transaction("images", "readwrite");
         const store = tx.objectStore("images");
@@ -258,19 +227,15 @@ class AppEngine {
         });
       }
 
-      // 3. Limpa fisicamente o DOM do palco visual
       const canvas = document.getElementById("canvas");
       if (canvas) canvas.innerHTML = "";
 
-      console.log("Reset total do Canvas executado com sucesso.");
+      console.log("Reset total do Canvas executedo com sucesso.");
     } catch (error) {
       console.error("Falha crítica durante a purgação de dados do sistema:", error);
     }
   }
 
-  /**
-   * Configura o input invisível de upload para novos arquivos de extensão de script.
-   */
   configurarUploadDeModulos() {
     const inputUpload = document.getElementById("input-upload-module");
     inputUpload?.addEventListener("change", (e) => {
@@ -290,9 +255,6 @@ class AppEngine {
     });
   }
 
-  /**
-   * Varre o armazenamento e delega a criação do bloco visual para o seu respectivo módulo.
-   */
   carregarElementosCanvas() {
     console.log("Sincronizando estado geométrico do Canvas...");
 
@@ -304,7 +266,6 @@ class AppEngine {
           const dadosBloco = JSON.parse(localStorage.getItem(chave));
           if (!dadosBloco) continue;
 
-          // RESOLUÇÃO DA COLISÃO DE TIPOS: Precedência explícita da propriedade .type
           let idModuloDono = dadosBloco.origin || dadosBloco.modulo;
           
           if (!idModuloDono) {
@@ -325,7 +286,6 @@ class AppEngine {
           if (idModuloDono && this.registry.has(idModuloDono)) {
             const moduloInstanciado = this.registry.get(idModuloDono);
             
-            // Tratamento polimórfico de payloads baseado na assinatura de contrato do módulo dono
             if (idModuloDono === 'chart') {
               if (typeof moduloInstanciado.criarBloco === 'function') {
                 moduloInstanciado.criarBloco(uidReal, estiloOriginal, dadosBloco.inputs || dadosBloco.status, dadosBloco.title);
@@ -333,7 +293,6 @@ class AppEngine {
                 moduloInstanciado.renderizarBloco(uidReal, estiloOriginal, dadosBloco.inputs || dadosBloco.status);
               }
             } else {
-              // Módulos normais (text / image / portability) recebem o payload estrutural completo
               if (typeof moduloInstanciado.criarBloco === 'function') {
                 moduloInstanciado.criarBloco(uidReal, estiloOriginal, dadosBloco);
               } else if (typeof moduloInstanciado.renderizarBloco === 'function') {
@@ -350,9 +309,6 @@ class AppEngine {
     }
   }
 
-  /**
-   * Oculta ou exibe rótulos textuais de agrupamento baseados em nós injetados.
-   */
   gerenciarVisibilidadeLabelGerenciamento() {
     const container = document.getElementById("container-gerenciamento-botoes");
     const grupoLabel = document.getElementById("group-gerenciamento");
@@ -366,7 +322,6 @@ class AppEngine {
   }
 }
 
-// Inicializa a engine principal após a resolução do DOM
 document.addEventListener("DOMContentLoaded", () => {
   new AppEngine().run();
 });
