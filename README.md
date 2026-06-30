@@ -43,3 +43,20 @@ Os blocos de conteúdo e imagens (`.draggable`) são renderizados na camada supe
 // Motor de alinhamento ao grid em CanvasManager.js
 div.style.left = Math.round((ev.pageX - sx) / gridSize) * gridSize + "px";
 div.style.top = Math.round((ev.pageY - sy) / gridSize) * gridSize + "px";
+```
+
+###3. Especificações dos Módulos Integrados
+3.1 Módulo de Gráficos (ChartModule.js)
+Motor Matemático Poligonal: Renderização trigonométrica pura baseada em eixos radiais escalados de acordo com os atributos customizados do Naruto RPG (NIN, INT, CHK, TAI, VIG, GEN).
+
+Mitigação de Overhead: O loop de redesenho do contexto 2D foi desacoplado do evento contínuo de movimentação do ponteiro do mouse, sendo disparado apenas nas interações de alteração de valores de input e na finalização do arrasto para garantir economia de CPU e GPU.
+
+###3.2 Módulo de Imagens (ImageModule.js)
+Persistência Offline Isolada: Upload e conversão de mídias pesadas para strings em formato Base64 persistidas de maneira isolada na API do IndexedDB.
+
+Gerenciamento de Memória Atômico: Implementação de rotina de expurgo físico no banco IndexedDB síncrona com o botão de exclusão do bloco no Canvas, impedindo o acúmulo de arquivos órfãos em disco local.
+
+###3.3 Módulo de Portabilidade de Dados (PortabilityModule.js)
+Backup Estruturado: Varredura de metadados ativos e consolidação de payloads estáveis para exportação em arquivos físicos .json.
+
+Tolerância a Falhas e Rollback Lógico: O processo de reidratação valida previamente o schema e a integridade de toda a coleção importada antes de executar qualquer limpeza ou substituição na memória ativa do sistema.
