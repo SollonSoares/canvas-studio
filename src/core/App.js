@@ -314,7 +314,7 @@ class AppEngine {
               idModuloDono = 'text';
             } else if (dadosBloco.url !== undefined) {
               idModuloDono = 'image';
-            } else if (dadosBloco.status !== undefined) {
+            } else if (dadosBloco.inputs !== undefined || dadosBloco.status !== undefined) {
               idModuloDono = 'chart';
             }
           }
@@ -325,12 +325,22 @@ class AppEngine {
           if (idModuloDono && this.registry.has(idModuloDono)) {
             const moduloInstanciado = this.registry.get(idModuloDono);
             
-            if (typeof moduloInstanciado.criarBloco === 'function') {
-              moduloInstanciado.criarBloco(uidReal, estiloOriginal, dadosBloco);
-            } else if (typeof moduloInstanciado.renderizarBloco === 'function') {
-              moduloInstanciado.renderizarBloco(uidReal, estiloOriginal, dadosBloco);
-            } else if (typeof moduloInstanciado.criarBlocoNoDOM === 'function') {
-              moduloInstanciado.criarBlocoNoDOM(uidReal, estiloOriginal, dadosBloco);
+            // Tratamento polimórfico de payloads baseado na assinatura de contrato do módulo dono
+            if (idModuloDono === 'chart') {
+              if (typeof moduloInstanciado.criarBloco === 'function') {
+                moduloInstanciado.criarBloco(uidReal, estiloOriginal, dadosBloco.inputs || dadosBloco.status, dadosBloco.title);
+              } else if (typeof moduloInstanciado.renderizarBloco === 'function') {
+                moduloInstanciado.renderizarBloco(uidReal, estiloOriginal, dadosBloco.inputs || dadosBloco.status);
+              }
+            } else {
+              // Módulos normais (text / image / portability) recebem o payload estrutural completo
+              if (typeof moduloInstanciado.criarBloco === 'function') {
+                moduloInstanciado.criarBloco(uidReal, estiloOriginal, dadosBloco);
+              } else if (typeof moduloInstanciado.renderizarBloco === 'function') {
+                moduloInstanciado.renderizarBloco(uidReal, estiloOriginal, dadosBloco);
+              } else if (typeof moduloInstanciado.criarBlocoNoDOM === 'function') {
+                moduloInstanciado.criarBlocoNoDOM(uidReal, estiloOriginal, dadosBloco);
+              }
             }
           }
         } catch (e) {

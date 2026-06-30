@@ -43,12 +43,17 @@ export default class ChartModule extends BaseModule {
    * Regras de negócio dedutivas para normalização matemática de atributos RPG.
    */
   calcularNotas(dados) {
-    let tai = (dados.taijutsu / 10) + 0.5;
-    let nin = (dados.ninjutsu / 10) + 0.5;
-    let gen = (dados.genjutsu / 10) + 0.5;
-    let vig = dados.vigor + 0.5;
-    let int = dados.inteligencia + 0.5;
-    let chk = (dados.chakraMax - 6) / 10;
+    let tai = (Number(dados.taijutsu || 0) / 10) + 0.5;
+    let nin = (Number(dados.ninjutsu || 0) / 10) + 0.5;
+    let gen = (Number(dados.genjutsu || 0) / 10) + 0.5;
+    let vig = Number(dados.vigor || 0) + 0.5;
+    let int = Number(dados.inteligencia || 0) + 0.5;
+    let chk = (Number(dados.chakraMax || 10) - 6) / 10;
+
+    // Normalização defensiva caso o valor do chakra já venha escalado do JSON antigo
+    if (dados.chakraMax <= 10 && dados.chakraMax > 0) {
+      chk = Number(dados.chakraMax);
+    }
 
     const ajustarNota = (nota) => {
       let arredondado = Math.round(nota * 2) / 2;
@@ -75,6 +80,8 @@ export default class ChartModule extends BaseModule {
    */
   desenharGrafico(canvasElement, notas) {
     const ctx = canvasElement.getContext('2d');
+    if (!ctx) return;
+    
     const centroX = canvasElement.width / 2;
     const centroY = canvasElement.height / 2;
     const raioMaximo = Math.min(centroX, centroY) * 0.65;
@@ -156,37 +163,57 @@ export default class ChartModule extends BaseModule {
   }
 
   /**
-   * Instancia la estrutura DOM do bloco de Gráfico e vincula listeners locais.
+   * Instancia a estrutura DOM do bloco de Gráfico e vincula listeners locais.
    */
+  criarBloco(id = null, style = null, dadosIniciais = null, tituloInicial = null) {
+    this.criarBlocoGrafico(id, style, dadosIniciais, tituloInicial);
+  }
+
   criarBlocoGrafico(id = null, style = null, dadosIniciais = null, tituloInicial = null) {
     const canvasContainer = document.getElementById("canvas");
     if (!canvasContainer) return;
 
     const uid = id || "c_" + Date.now();
+    
+    // Evita duplicidade visual caso a reidratação tente renderizar o mesmo nó
+    const blocoExistente = document.getElementById("block_" + uid);
+    if (blocoExistente) blocoExistente.remove();
+
     const div = document.createElement("div");
     div.className = "draggable";
+    div.id = "block_" + uid;
     div.dataset.id = uid;
     div.dataset.type = "chart";
     div.style.cssText = style || "top:100px; left:100px;";
 
-    const valores = dadosIniciais || { taijutsu: 0, ninjutsu: 0, genjutsu: 0, vigor: 0, inteligencia: 0, chakraMax: 6 };
+    // Fallback agressivo: mapeia .inputs, .status ou o próprio objeto raiz para suportar JSONs antigos
+    const valores = dadosIniciais?.inputs || dadosIniciais?.status || (dadosIniciais && typeof dadosIniciais === 'object' && !dadosIniciais.type ? dadosIniciais : null) || { 
+      taijutsu: 1, 
+      ninjutsu: 1, 
+      genjutsu: 1, 
+      vigor: 1, 
+      inteligencia: 1, 
+      chakraMax: 10 
+    };
+
+    const titulo = tituloInicial || dadosIniciais?.title || "STATUS SHINOBI";
 
     div.innerHTML = `
       <div class="drag-handle">
         <span>✥ Status</span>
-        <input class="title-input" value="${tituloInicial || "STATUS SHINOBI"}" style="flex:1; margin:0 5px; background:none; border:none; color:inherit; outline:none;">
+        <input class="title-input" value="${titulo}" style="flex:1; margin:0 5px; background:none; border:none; color:inherit; outline:none; font-weight:bold;">
         <span class="close-btn" style="cursor:pointer;">X</span>
       </div>
       <div class="chart-container" style="padding:10px; display:flex; flex-direction:column; align-items:center;">
         <canvas id="canvas_render_${uid}" width="200" height="200" style="background:transparent;"></canvas>
         <div class="media-display" style="font-weight:bold; margin: 5px 0; font-size:14px; color:var(--accent);">Média: <span class="media-val">0.0</span></div>
         <div class="chart-inputs-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:5px; font-size:11px; padding:5px;">
-          <label style="display:flex; gap:3px;"><input type="number" data-stat="ninjutsu" value="${valores.ninjutsu}" min="0" max="100" style="width:40px; padding:3px;"> NIN%</label>
-          <label style="display:flex; gap:3px;"><input type="number" data-stat="inteligencia" value="${valores.inteligencia}" min="0" max="20" style="width:40px; padding:3px;"> INT+</label>
-          <label style="display:flex; gap:3px;"><input type="number" data-stat="chakraMax" value="${valores.chakraMax}" style="width:40px; padding:3px;"> CHK+</label>
-          <label style="display:flex; gap:3px;"><input type="number" data-stat="taijutsu" value="${valores.taijutsu}" min="0" max="100" style="width:40px; padding:3px;"> TAI%</label>
-          <label style="display:flex; gap:3px;"><input type="number" data-stat="vigor" value="${valores.vigor}" min="0" max="20" style="width:40px; padding:3px;"> VIG+</label>
-          <label style="display:flex; gap:3px;"><input type="number" data-stat="genjutsu" value="${valores.genjutsu}" min="0" max="100" style="width:40px; padding:3px;"> GEN%</label>
+          <label style="display:flex; gap:3px;"><input type="number" data-stat="ninjutsu" value="${valores.ninjutsu ?? 1}" min="1" max="100" style="width:40px; padding:3px;"> NIN</label>
+          <label style="display:flex; gap:3px;"><input type="number" data-stat="inteligencia" value="${valores.inteligencia ?? 1}" min="1" max="20" style="width:40px; padding:3px;"> INT</label>
+          <label style="display:flex; gap:3px;"><input type="number" data-stat="chakraMax" value="${valores.chakraMax ?? 10}" style="width:40px; padding:3px;"> CHK</label>
+          <label style="display:flex; gap:3px;"><input type="number" data-stat="taijutsu" value="${valores.taijutsu ?? 1}" min="1" max="100" style="width:40px; padding:3px;"> TAI</label>
+          <label style="display:flex; gap:3px;"><input type="number" data-stat="vigor" value="${valores.vigor ?? 1}" min="1" max="20" style="width:40px; padding:3px;"> VIG</label>
+          <label style="display:flex; gap:3px;"><input type="number" data-stat="genjutsu" value="${valores.genjutsu ?? 1}" min="1" max="100" style="width:40px; padding:3px;"> GEN</label>
         </div>
       </div>
     `;
@@ -205,7 +232,11 @@ export default class ChartModule extends BaseModule {
       const media = this.calcularMedia(notas);
 
       div.querySelector(".media-val").innerText = media.toFixed(1);
-      this.desenharGrafico(div.querySelector("canvas"), notas);
+      
+      const targetCanvas = div.querySelector("canvas");
+      if (targetCanvas) {
+        this.desenharGrafico(targetCanvas, notas);
+      }
 
       localStorage.setItem("data_" + uid, JSON.stringify({
         top: div.style.top,
@@ -231,7 +262,6 @@ export default class ChartModule extends BaseModule {
   }
 
   tratarMovimentacaoBloco(divAlvo) {
-    // O redesenho contínuo durante o arrasto do mouse foi desativado.
     return;
   }
 
