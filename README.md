@@ -6,7 +6,7 @@ Estúdio de desenho interativo usando HTML Canvas.
 
 ---
 # DOCUMENTAÇÃO TÉCNICA: CANVAS STUDIO (NARUTO RPG)
-> **Status do Projeto:** Operacional & Modularizado (v1.2.0)
+> **Status do Projeto:** Operacional & Modularizado (v1.3.0)
 > **Stack Técnica:** HTML5, CSS3 (Custom Properties), Vanilla JavaScript (ES6 Modules), Web Storage (LocalStorage & IndexedDB API).
 > **URL Oficial:** https://sollonsoares.github.io/canvas-studio/
 
@@ -32,6 +32,8 @@ O layout adota uma abordagem de painel administrativo dividida em um menu latera
 O motor da aplicação foi completamente refatorado para operar sob o controle do `AppEngine`. 
 * Registro de Módulos: Através de um mapa dinâmico (`this.registry`), o Core gerencia o ciclo de vida e o estado de ativação de extensões isoladas (`PortabilityModule`, `TextModule`, `ImageModule`, `ChartModule`).
 * Painel Reativo de Ativação: O painel de controle mapeia caixas de seleção injetadas em tempo de execução. Para mitigar problemas de injeção repetida e empilhamento de nós invisíveis no DOM, o Core adota um protocolo estrito de limpeza e oferece o botão físico **Aplicar** para salvar e reidratar os estados de forma atômica e determinística.
+* Resolução de Conflitos e Tipo Explícito: O Core prioriza o atributo `.type` durante a leitura das chaves de persistência para evitar colisões entre as extensões de gráficos, mídias e blocos de texto dinâmicos.
+* Reset Atômico do Canvas: Interface integrada com botão de purga global que realiza a limpeza sincronizada de referências no LocalStorage, remoção física de blobs binários na ObjectStore do IndexedDB e esvaziamento imediato do palco visual com barreira de confirmação via `confirm()`.
 
 ### 2.3 Sistema Magnético de Movimentação (Snap-to-Grid)
 Os blocos de conteúdo e imagens (`.draggable`) são renderizados na camada superior com posicionamento absoluto e eixos computados em tempo real através do barramento.
