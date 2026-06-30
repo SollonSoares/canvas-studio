@@ -33,41 +33,40 @@ export default class PortabilityModule extends BaseModule {
   }
 
   /**
-   * Varre o LocalStorage, consolida todos os blocos ativos e gera um arquivo de download.
+   * Varre o LocalStorage, consolida todos os blocos ativos e gera um download local do arquivo JSON.
    */
   executarExportacao() {
-    try {
-      const payloads = [];
-      
-      for (let i = 0; i < localStorage.length; i++) {
-        const chave = localStorage.key(i);
-        // Captura todas as chaves de dados ignorando estados estruturais do core
-        if (chave.startsWith("data_") && chave !== "data_brand_title" && chave !== "data_modules_state" && chave !== "app_modules_state") {
-          const item = JSON.parse(localStorage.getItem(chave));
-          if (item) {
-            // Garante que a chave id seja guardada no payload para não perdermos a referência na importação
-            if (!item.id) item.id = chave.replace("data_", "");
-            payloads.push(item);
-          }
+    const backupColecao = [];
+
+    for (let i = 0; i < localStorage.length; i++) {
+      const chave = localStorage.key(i);
+      if (chave.startsWith("data_") && chave !== "data_brand_title" && chave !== "data_modules_state" && chave !== "app_modules_state") {
+        try {
+          const itemBruto = JSON.parse(localStorage.getItem(chave));
+          // Re-injeta o ID estável do registro de forma explícita no payload de portabilidade
+          itemBruto.id = chave.replace("data_", "");
+          backupColecao.push(itemBruto);
+        } catch (e) {
+          console.error("Ignorando bloco corrompido no pipeline de exportação:", e);
         }
       }
-
-      const jsonString = JSON.stringify(payloads, null, 2);
-      
-      const blob = new Blob([jsonString], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "canvas-studio-backup.json";
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Falha ao exportar dados do Canvas:", error);
     }
+
+    // Geração do blob e trigger de download nativo do navegador
+    const dadosConvertidos = JSON.stringify(backupColecao, null, 2);
+    const blob = new Blob([dadosConvertidos], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    
+    const elementoGatilho = document.createElement("a");
+    elementoGatilho.href = url;
+    elementoGatilho.download = `canvas_studio_backup_${Math.floor(Date.now() / 1000)}.json`;
+    elementoGatilho.click();
+    
+    URL.revokeObjectURL(url);
   }
 
   /**
-   * Dispara o seletor de arquivos do sistema operacional para carregar o backup.
+   * Instancia uma janela de seleção para carregar um arquivo local .json
    */
   solicitarArquivoJSON() {
     const input = document.createElement("input");
@@ -95,29 +94,38 @@ export default class PortabilityModule extends BaseModule {
     try {
       const colecao = JSON.parse(conteudoTexto);
       if (!Array.isArray(colecao)) {
-        console.error("Erro: O payload precisa ser uma coleção estruturada de blocos.");
-        return;
+        throw new Error("O payload precisa ser uma coleção estruturada de blocos.");
       }
 
-      // Limpa os blocos antigos antes de injetar os novos
+      // INTEGRIDADE E VALIDAÇÃO PRÉVIA (ROLLBACK LÓGICO [REQ-004])
+      const dadosValidados = colecao.map((bloco, index) => {
+        if (!bloco.type) {
+          throw new Error(`Bloco no índice ${index} não possui a propriedade obrigatória 'type'.`);
+        }
+        return {
+          id: bloco.id || bloco.imgId || ("block_" + index + "_" + Math.random().toString(36).substr(2, 5)),
+          payload: bloco
+        };
+      });
+
+      // Operação segura: O armazenamento ativo só é limpo após sucesso total no parse e validação completa do schema
       Object.keys(localStorage).forEach(chave => {
         if (chave.startsWith("data_") && chave !== "data_brand_title" && chave !== "data_modules_state" && chave !== "app_modules_state") {
           localStorage.removeItem(chave);
         }
       });
 
-      // Salva cada bloco preservando o ID original estável do backup
-      colecao.forEach((bloco, index) => {
-        // Tenta usar o ID fixo do objeto, senão usa uma chave sequencial segura baseada no index do loop
-        const idOriginal = bloco.id || bloco.imgId || ("block_" + index + "_" + Math.random().toString(36).substr(2, 5));
-        
-        localStorage.setItem("data_" + idOriginal, JSON.stringify(bloco));
+      // Gravação definitiva dos novos blocos validados
+      dadosValidados.forEach(item => {
+        localStorage.setItem("data_" + item.id, JSON.stringify(item.payload));
       });
 
-      // Notifica o App.js para redesenhar a tela
+      // Emite ordem para redesenhar o espaço de trabalho global
       bus.emit('canvas:reload-request');
+      alert("Importação de painel concluída com sucesso.");
     } catch (error) {
-      console.error("Falha na importação do payload JSON:", error);
+      console.error("Abandono de importação por inconsistência nos dados (Rollback executado):", error.message);
+      alert(`Falha na Importação: ${error.message} Nenhuma alteração foi realizada.`);
     }
   }
 }

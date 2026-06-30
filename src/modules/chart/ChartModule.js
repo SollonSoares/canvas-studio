@@ -156,7 +156,7 @@ export default class ChartModule extends BaseModule {
   }
 
   /**
-   * Instancia a estrutura DOM do bloco de Gráfico e vincula listeners locais.
+   * Instancia la estrutura DOM do bloco de Gráfico e vincula listeners locais.
    */
   criarBlocoGrafico(id = null, style = null, dadosIniciais = null, tituloInicial = null) {
     const canvasContainer = document.getElementById("canvas");
@@ -231,20 +231,8 @@ export default class ChartModule extends BaseModule {
   }
 
   tratarMovimentacaoBloco(divAlvo) {
-    if (divAlvo.dataset.type === 'chart') {
-      const canvas = divAlvo.querySelector("canvas");
-      if (!canvas) return;
-      // Redesenha o gráfico durante o arrasto para evitar descompasso visual
-      const inputs = {
-        taijutsu: Number(divAlvo.querySelector('[data-stat="taijutsu"]').value),
-        ninjutsu: Number(divAlvo.querySelector('[data-stat="ninjutsu"]').value),
-        genjutsu: Number(divAlvo.querySelector('[data-stat="genjutsu"]').value),
-        vigor: Number(divAlvo.querySelector('[data-stat="vigor"]').value),
-        inteligencia: Number(divAlvo.querySelector('[data-stat="inteligencia"]').value),
-        chakraMax: Number(divAlvo.querySelector('[data-stat="chakraMax"]').value)
-      };
-      this.desenharGrafico(canvas, this.calcularNotas(inputs));
-    }
+    // O redesenho contínuo durante o arrasto do mouse foi desativado.
+    return;
   }
 
   filtrarBlocosPorTitulo(termo) {

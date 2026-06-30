@@ -332,4 +332,5 @@ button:active {
   color: rgba(128, 128, 128, 0.8);
   display: block;
   margin-bottom: 10px;
-  letter-spacing: 0.
+  letter-spacing: 0.5px;
+}

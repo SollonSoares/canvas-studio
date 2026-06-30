@@ -208,6 +208,64 @@ class AppEngine {
     });
 
     this.gerenciarVisibilidadeLabelGerenciamento();
+    this.injetarBotaoLimparCanvas();
+  }
+
+  /**
+   * Injeta dinamicamente o botão de reset total no container de gerenciamento.
+   */
+  injetarBotaoLimparCanvas() {
+    const container = document.getElementById("container-gerenciamento-botoes");
+    if (!container) return;
+
+    const btnLimpar = document.createElement("button");
+    btnLimpar.id = "btn-clear-canvas";
+    btnLimpar.innerText = "💥 Limpar Tudo";
+    btnLimpar.style.color = "#ff453a";
+    btnLimpar.style.marginTop = "10px";
+    btnLimpar.style.border = "1px dashed rgba(255, 69, 58, 0.4)";
+
+    btnLimpar.onclick = () => {
+      const confirmacao = confirm("⚠️ ATENÇÃO! Esta ação irá apagar TODOS os blocos e mídias do Canvas permanentemente. Não tem volta! Deseja continuar?");
+      if (confirmacao) {
+        this.executarResetTotal();
+      }
+    };
+
+    container.appendChild(btnLimpar);
+  }
+
+  /**
+   * Expurga os dados do LocalStorage, limpa a ObjectStore do IndexedDB e limpa o DOM do Canvas.
+   */
+  async executarResetTotal() {
+    try {
+      // 1. Limpa blocos de dados do LocalStorage, preservando apenas estados de configuração do sistema
+      Object.keys(localStorage).forEach(chave => {
+        if (chave.startsWith("data_") && chave !== "data_brand_title" && chave !== "data_modules_state" && chave !== "app_modules_state") {
+          localStorage.removeItem(chave);
+        }
+      });
+
+      // 2. Limpa o ObjectStore de imagens no IndexedDB de forma assíncrona
+      if (dbManager.db) {
+        const tx = dbManager.db.transaction("images", "readwrite");
+        const store = tx.objectStore("images");
+        await new Promise((resolve, reject) => {
+          const req = store.clear();
+          req.onsuccess = () => resolve();
+          req.onerror = () => reject(req.error);
+        });
+      }
+
+      // 3. Limpa fisicamente o DOM do palco visual
+      const canvas = document.getElementById("canvas");
+      if (canvas) canvas.innerHTML = "";
+
+      console.log("Reset total do Canvas executado com sucesso.");
+    } catch (error) {
+      console.error("Falha crítica durante a purgação de dados do sistema:", error);
+    }
   }
 
   /**
@@ -246,12 +304,19 @@ class AppEngine {
           const dadosBloco = JSON.parse(localStorage.getItem(chave));
           if (!dadosBloco) continue;
 
+          // RESOLUÇÃO DA COLISÃO DE TIPOS: Precedência explícita da propriedade .type
           let idModuloDono = dadosBloco.origin || dadosBloco.modulo;
           
           if (!idModuloDono) {
-            if (dadosBloco.type === 'text' || dadosBloco.campos !== undefined || dadosBloco.title !== undefined) idModuloDono = 'text';
-            else if (dadosBloco.type === 'image' || dadosBloco.url !== undefined) idModuloDono = 'image';
-            else if (dadosBloco.type === 'chart' || dadosBloco.status !== undefined) idModuloDono = 'chart';
+            if (dadosBloco.type) {
+              idModuloDono = dadosBloco.type;
+            } else if (dadosBloco.campos !== undefined) {
+              idModuloDono = 'text';
+            } else if (dadosBloco.url !== undefined) {
+              idModuloDono = 'image';
+            } else if (dadosBloco.status !== undefined) {
+              idModuloDono = 'chart';
+            }
           }
 
           const estiloOriginal = `top: ${dadosBloco.top || '100px'}; left: ${dadosBloco.left || '100px'};`;

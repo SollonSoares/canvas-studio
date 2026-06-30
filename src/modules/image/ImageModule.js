@@ -39,7 +39,7 @@ export default class ImageModule extends BaseModule {
   }
 
   /**
-   * Abre a caixa de diálogo nativa do sistema operacional para seleção de mídias.
+   * Dispara a janela nativa de upload de arquivos restrita a formatos de imagem.
    */
   solicitarArquivoImagem() {
     const input = document.createElement("input");
@@ -52,46 +52,54 @@ export default class ImageModule extends BaseModule {
 
       const reader = new FileReader();
       reader.onload = async (event) => {
-        const imgId = "img_" + Date.now();
-        const dataUrl = event.target.result;
-
+        const dataUrlString = event.target.result;
+        const idGerado = "img_" + Math.random().toString(36).substr(2, 9);
+        
         try {
-          // Gravação assíncrona do binário no IndexedDB do Core
-          await dbManager.salvarImagemIndexedDB(imgId, dataUrl);
-
-          // Escrita de metadados de posicionamento no LocalStorage
-          localStorage.setItem("data_" + imgId, JSON.stringify({
-            top: "100px",
-            left: "100px",
+          // Gravação assíncrona do payload pesado no ObjectStore
+          await dbManager.salvarImagemIndexedDB(idGerado, dataUrlString);
+          
+          // Gravação síncrona dos metadados posicionais no LocalStorage
+          localStorage.setItem("data_" + idGerado, JSON.stringify({
+            top: "150px",
+            left: "150px",
             type: "image",
-            imgId: imgId
+            imgId: idGerado
           }));
 
-          // Renderização imediata na tela
-          this.renderizarImagemCanvas(imgId, dataUrl, "100px", "100px");
-        } catch (error) {
-          console.error("Falha ao salvar mídia binária:", error);
-          alert("Erro crítico ao armazenar imagem em disco local.");
+          this.renderizarImagemCanvas(idGerado, "top:150px; left:150px;", dataUrlString);
+        } catch (dbError) {
+          console.error("Falha ao persistir objeto de imagem no IndexedDB:", dbError);
         }
       };
       reader.readAsDataURL(file);
     };
-    
     input.click();
   }
 
   /**
-   * Constrói a árvore de nós DOM para exibição da imagem dentro do Canvas.
+   * Método chamado pela engine de carregamento do Core. Busca o binário assincronamente e renderiza.
    */
-  renderizarImagemCanvas(id, src, top, left) {
+  async renderizarBloco(id, cssStyle, dadosMetadados) {
+    const idImagemReal = dadosMetadados.imgId || id;
+    const stringBinaria = await dbManager.obterImagemIndexedDB(idImagemReal);
+    
+    // Fallback visual de imagem quebrada/inexistente no banco local
+    const fallbackSrc = stringBinaria || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100' height='100' fill='rgba(255,0,0,0.1)'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='red' font-size='10'>Mídia Ausente</text></svg>";
+    
+    this.renderizarImagemCanvas(idImagemReal, cssStyle, fallbackSrc);
+  }
+
+  renderizarImagemCanvas(id, cssStyle, src) {
     const canvas = document.getElementById("canvas");
-    if (!canvas || document.querySelector(`[data-id="${id}"]`)) return;
+    if (!canvas) return;
 
     const div = document.createElement("div");
     div.className = "draggable";
+    div.id = "block_" + id;
     div.dataset.id = id;
     div.dataset.type = "image";
-    div.style.cssText = `top:${top || "100px"}; left:${left || "100px"};`;
+    div.style.cssText = cssStyle;
 
     div.innerHTML = `
       <div class="drag-handle">
@@ -101,12 +109,20 @@ export default class ImageModule extends BaseModule {
       <img src="${src}" draggable="false">
     `;
 
-    // Ação de Exclusão
-    div.querySelector(".close-btn").onclick = () => {
-      localStorage.removeItem("data_" + id);
-      // Nota: O registro binário permanece no IndexedDB para portabilidade caso desejado,
-      // removendo apenas a ocorrência do Canvas.
-      div.remove();
+    // RESOLUÇÃO DE VAZAMENTO DE MEMÓRIA (EXPURGO ATÔMICO)
+    div.querySelector(".close-btn").onclick = async () => {
+      try {
+        localStorage.removeItem("data_" + id);
+        
+        if (dbManager.db) {
+          const tx = dbManager.db.transaction("images", "readwrite");
+          tx.objectStore("images").delete(id);
+        }
+        
+        div.remove();
+      } catch (error) {
+        console.error("Erro ao expurgar mídia do banco de dados:", error);
+      }
     };
 
     // Vincula o motor de arrasto geométrico do Core
@@ -129,9 +145,9 @@ export default class ImageModule extends BaseModule {
   filtrarBlocosPorId(termo) {
     const blocos = document.querySelectorAll('.draggable[data-type="image"]');
     blocos.forEach(bloco => {
-      const id = bloco.dataset.id.toLowerCase();
-      if (termo === "" || id.includes(termo)) {
-        bloco.style.display = "";
+      const idBloco = bloco.dataset.id.toLowerCase();
+      if (idBloco.includes(termo) || termo === "") {
+        bloco.style.display = "block";
       } else {
         bloco.style.display = "none";
       }
