@@ -1,7 +1,7 @@
 :root {
-  /* Dark Mode como padrão */
+  /* Definição de Variáveis (Design System) - Dark Mode Padrão */
   --bg-main: #1c1c1e;
-  --bg-menu: rgba(44, 44, 46, 0.8);
+  --bg-menu: rgba(44, 44, 46, 0.95);
   --text-main: #f5f5f7;
   --accent: #0a84ff;
   --canvas-grid: #2c2c2e;
@@ -10,7 +10,7 @@
 
 .light-mode {
   --bg-main: #f5f5f7;
-  --bg-menu: rgba(255, 255, 255, 0.8);
+  --bg-menu: rgba(255, 255, 255, 0.95);
   --text-main: #1d1d1f;
   --accent: #0071e3;
   --canvas-grid: #e2e2e6;
@@ -25,69 +25,206 @@ body {
   transition: background 0.3s;
 }
 
+/* Estrutura Principal Flexbox */
 .layout-wrapper {
   display: flex;
   height: 100vh;
+  width: 100vw;
   overflow: hidden;
 }
 
-/* Dashboard */
+/* ===== DASHBOARD (BARRA LATERAL FIXA) ===== */
 #dashboard-menu {
-  width: 250px;
+  width: 260px;
+  height: 100vh;
   background: var(--bg-menu);
   backdrop-filter: blur(20px);
-  border-right: 1px solid rgba(0, 0, 0, 0.05);
+  -webkit-backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(128, 128, 128, 0.15);
   padding: 20px;
-  transition: width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
   flex-shrink: 0;
-  overflow: hidden;
 }
 
 #dashboard-menu.collapsed {
-  width: 60px;
-  padding: 20px 5px;
-  display: flex;
-  flex-direction: column;
+  width: 70px;
+  padding: 20px 10px;
   align-items: center;
 }
-/* Garante que elementos filhos desapareçam ao colapsar */
+
+/* Correção de especificidade: oculta elementos específicos sem quebrar o contêiner do rodapé */
 #dashboard-menu.collapsed .brand,
 #dashboard-menu.collapsed .menu-group,
-#dashboard-menu.collapsed .menu-label {
+#dashboard-menu.collapsed .menu-label,
+#dashboard-menu.collapsed button:not(#toggle-sidebar),
+#dashboard-menu.collapsed .theme-controller-row {
   display: none !important;
 }
 
-/* Centraliza o botão no topo quando colapsado */
-#toggle-sidebar {
-  font-size: 20px;
+.brand h1 {
+  font-size: 22px;
+  margin: 0 0 20px 0;
+  outline: none;
+  border-bottom: 1px dashed transparent;
+}
+.brand h1:focus {
+  border-bottom-color: var(--accent);
+}
+
+.menu-group {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-label {
+  font-size: 11px;
+  font-weight: bold;
+  color: rgba(128, 128, 128, 0.8);
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+
+#input-search {
+  background: rgba(128, 128, 128, 0.1);
+  border: 1px solid rgba(128, 128, 128, 0.2);
+  border-radius: 8px;
+  padding: 8px;
+  color: var(--text-main);
+  outline: none;
+}
+
+#nav-controls {
+  flex: 1;
+  overflow-y: auto;
   margin-bottom: 20px;
 }
 
-/* Canvas */
+/* ===== BOTÕES E COMPONENTES GERAIS ===== */
+button {
+  background: rgba(128, 128, 128, 0.1);
+  border: none;
+  color: var(--accent);
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  margin: 4px 0;
+  transition: background 0.2s, transform 0.1s;
+  width: 100%;
+  text-align: left;
+}
+button:hover {
+  background: rgba(128, 128, 128, 0.2);
+}
+button:active {
+  transform: scale(0.98);
+}
+
+#toggle-sidebar {
+  width: auto;
+  align-self: flex-start;
+  margin-bottom: 15px;
+}
+
+.wysiwyg-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+.wysiwyg-grid button {
+  text-align: center;
+  padding: 8px 0;
+}
+
+/* ===== RODAPÉ DA SIDEBAR E SWITCH ===== */
+.sidebar-footer {
+  border-top: 1px solid rgba(128, 128, 128, 0.15);
+  padding-top: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  margin-top: auto;
+}
+
+.theme-controller-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(128, 128, 128, 0.08);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--text-main);
+}
+
+.theme-label-text {
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.apple-switch {
+  width: 46px;
+  height: 26px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  border-radius: 13px;
+  background: #39393d;
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.apple-switch .thumb {
+  width: 22px;
+  height: 22px;
+  background: #ffffff;
+  border-radius: 50%;
+  position: absolute;
+  left: 2px;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+#btn-theme.active { 
+  background: #34c759; 
+}
+#btn-theme.active .thumb { 
+  transform: translateX(20px); 
+}
+
+/* ===== PALCO GEOMÉTRICO (CANVAS) ===== */
 #canvas {
   flex: 1;
   position: relative;
   overflow: auto;
-  background-image: radial-gradient(
-    circle,
-    var(--canvas-grid) 1px,
-    transparent 1px
-  );
+  background-image: radial-gradient(circle, var(--canvas-grid) 1px, transparent 1px);
   background-size: 20px 20px;
+  background-color: var(--bg-main);
 }
 
-/* Blocos */
+/* ===== BLOCOS ARRASTÁVEIS (DRAGGABLE) ===== */
 .draggable {
   position: absolute;
   background: var(--bg-menu);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(128, 128, 128, 0.2);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
-  min-width: 180px;
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(128, 128, 128, 0.25);
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.3);
+  min-width: 200px;
   border-radius: var(--radius);
   z-index: 10;
   overflow: hidden;
-  color: var(--text-main);
 }
 
 .draggable img {
@@ -98,25 +235,23 @@ body {
 }
 
 .drag-handle {
-  background: rgba(128, 128, 128, 0.1);
-  color: var(--text-main);
+  background: rgba(128, 128, 128, 0.15);
   padding: 10px;
   cursor: move;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-weight: 500;
-  border-bottom: 1px solid rgba(128, 128, 128, 0.1);
 }
 
 .title-input {
   flex-grow: 1;
   margin: 0 10px;
-  background: none;
-  border: none;
-  color: var(--text-main);
+  background: transparent !important;
+  border: none !important;
+  color: var(--text-main) !important;
   font-weight: 600;
   outline: none;
+  box-shadow: none !important;
 }
 
 .lista-campos {
@@ -147,66 +282,54 @@ body {
   text-align: center;
 }
 
-button {
-  background: rgba(128, 128, 128, 0.1);
-  border: none;
-  color: var(--accent);
-  padding: 10px;
-  width: 100%;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 500;
-  margin: 4px 0;
-  transition: background 0.2s;
-}
-
-button:hover {
-  background: rgba(128, 128, 128, 0.2);
-}
-
-.wysiwyg-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 4px;
-}
-
-/* Limpeza: Garante que propriedades genéricas não vazem para o switch */
-.apple-switch {
-  /* Reseta estilos genéricos de botões */
-  width: 50px;
-  height: 30px;
-  padding: 0;
-  margin: 4px 0;
-  border: none;
-  border-radius: 15px;
-  background: #39393d;
-  cursor: pointer;
-  position: relative;
-  transition: background 0.3s ease;
-  /* Garante que o conteúdo respeite o tamanho */
-  display: flex;
+/* ===== POP-UP (MODAL) CONFIGURAÇÕES ===== */
+#settings-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   align-items: center;
+  justify-content: center;
 }
 
-.apple-switch .thumb {
-  width: 26px;
-  height: 26px;
-  background: #ffffff;
-  border-radius: 50%;
-  position: absolute;
-  left: 2px;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+#settings-modal .modal-content {
+  background: var(--bg-menu);
+  border: 1px solid rgba(128, 128, 128, 0.25);
+  border-radius: var(--radius);
+  width: 380px;
+  padding: 25px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
 }
 
-/* Estado ativo (especificidade alta pelo ID ou classe) */
-#btn-theme.active {
-  background: #34c759;
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.modal-header h3 { margin: 0; font-size: 18px; }
+
+.btn-close-style {
+  width: auto;
+  background: transparent;
+  color: #ff453a;
+  font-size: 16px;
+  padding: 5px;
+  margin: 0;
 }
 
-#btn-theme.active .thumb {
-  transform: translateX(20px);
-}
-
-
+.section-title {
+  font-size: 11px;
+  font-weight: bold;
+  color: rgba(128, 128, 128, 0.8);
+  display: block;
+  margin-bottom: 10px;
+  letter-spacing: 0.
