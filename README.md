@@ -45,8 +45,8 @@ div.style.left = Math.round((ev.pageX - sx) / gridSize) * gridSize + "px";
 div.style.top = Math.round((ev.pageY - sy) / gridSize) * gridSize + "px";
 ```
 
-###3. Especificações dos Módulos Integrados
-3.1 Módulo de Gráficos (ChartModule.js)
+##3. Especificações dos Módulos Integrados
+###3.1 Módulo de Gráficos (ChartModule.js)
 Motor Matemático Poligonal: Renderização trigonométrica pura baseada em eixos radiais escalados de acordo com os atributos customizados do Naruto RPG (NIN, INT, CHK, TAI, VIG, GEN).
 
 Mitigação de Overhead: O loop de redesenho do contexto 2D foi desacoplado do evento contínuo de movimentação do ponteiro do mouse, sendo disparado apenas nas interações de alteração de valores de input e na finalização do arrasto para garantir economia de CPU e GPU.
