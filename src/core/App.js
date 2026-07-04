@@ -49,7 +49,10 @@ class AppEngine {
     this.registry.set('text', new TextModule());
     this.registry.set('image', new ImageModule());
     this.registry.set('chart', new ChartModule());
-    this.registry.set('resize', new ResizeModule());
+    
+    const resizeInst = new ResizeModule();
+    this.registry.set('resize', resizeInst);
+    window.ResizeModule = resizeInst;
 
     this.registry.forEach((instance, key) => {
       if (this.modulesState[key]) {
@@ -230,7 +233,7 @@ class AppEngine {
       const canvas = document.getElementById("canvas");
       if (canvas) canvas.innerHTML = "";
 
-      console.log("Reset total do Canvas executedo com sucesso.");
+      console.log("Reset total do Canvas executado com sucesso.");
     } catch (error) {
       console.error("Falha crítica durante a purgação de dados do sistema:", error);
     }

@@ -12,9 +12,6 @@ export default class TextModule extends BaseModule {
     this.boundSearch = this.filtrarBlocosPorTexto.bind(this);
   }
 
-  /**
-   * Inicializa o módulo: Injeta controles na Sidebar e activa escutas globais.
-   */
   init() {
     const containerBotoes = document.getElementById("container-gerenciamento-botoes");
     const grupoWysiwyg = document.getElementById("group-wysiwyg");
@@ -43,10 +40,9 @@ export default class TextModule extends BaseModule {
       `;
       grupoWysiwyg.style.display = "block";
 
-      // Vincula comandos aos botões WYSIWYG
-      grupoWysiwyg.querySelector("#wysiwyg-b").onmousedown = (e) => { e.preventDefault(); this.formatarTexto('bold'); };
-      grupoWysiwyg.querySelector("#wysiwyg-i").onmousedown = (e) => { e.preventDefault(); this.formatarTexto('italic'); };
-      grupoWysiwyg.querySelector("#wysiwyg-u").onmousedown = (e) => { e.preventDefault(); this.formatarTexto('underline'); };
+      grupoWysiwyg.querySelector("#wysiwyg-b").onmousedown = (e) => { e.preventDefault(); this.formatarInline('strong'); };
+      grupoWysiwyg.querySelector("#wysiwyg-i").onmousedown = (e) => { e.preventDefault(); this.formatarInline('em'); };
+      grupoWysiwyg.querySelector("#wysiwyg-u").onmousedown = (e) => { e.preventDefault(); this.formatarInline('u'); };
       grupoWysiwyg.querySelector("#wysiwyg-aplus").onmousedown = (e) => { e.preventDefault(); this.ajustarFonte(1); };
       grupoWysiwyg.querySelector("#wysiwyg-aminus").onmousedown = (e) => { e.preventDefault(); this.ajustarFonte(-1); };
       grupoWysiwyg.querySelector("#wysiwyg-titulo").onmousedown = (e) => { e.preventDefault(); this.aplicarEstilo('classe-titulo'); };
@@ -54,14 +50,11 @@ export default class TextModule extends BaseModule {
       grupoWysiwyg.querySelector("#wysiwyg-num").onmousedown = (e) => { e.preventDefault(); this.aplicarEstilo('classe-num'); };
     }
 
-    // Ouvintes de eventos do ecossistema
-    document.addEventListener("focusin", this.capturarFoco.bind(this));
+    this.boundCapturarFoco = this.capturarFoco.bind(this);
+    document.addEventListener("focusin", this.boundCapturarFoco);
     bus.on('search:query', this.boundSearch);
   }
 
-  /**
-   * Desativa o módulo removendo os botões, painel WYSIWYG e listeners.
-   */
   destroy() {
     super.destroy();
     const grupoWysiwyg = document.getElementById("group-wysiwyg");
@@ -69,7 +62,7 @@ export default class TextModule extends BaseModule {
       grupoWysiwyg.innerHTML = "";
       grupoWysiwyg.style.display = "none";
     }
-    document.removeEventListener("focusin", this.capturarFoco.bind(this));
+    document.removeEventListener("focusin", this.boundCapturarFoco);
     bus.off('search:query', this.boundSearch);
   }
 
@@ -79,9 +72,27 @@ export default class TextModule extends BaseModule {
     }
   }
 
-  formatarTexto(comando) {
+  formatarInline(tag) {
+    const selecao = window.getSelection();
+    if (!selecao.rangeCount || selecao.isCollapsed) return;
+    
+    const range = selecao.getRangeAt(0);
+    const elementoPai = range.commonAncestorContainer.parentElement;
+    
+    if (elementoPai && elementoPai.tagName.toLowerCase() === tag) {
+      const texto = document.createTextNode(elementoPai.innerText);
+      elementoPai.parentNode.replaceChild(texto, elementoPai);
+    } else {
+      const wrapper = document.createElement(tag);
+      try {
+        range.surroundContents(wrapper);
+      } catch (e) {
+        wrapper.appendChild(range.extractContents());
+        range.insertNode(wrapper);
+      }
+    }
     if (this.ultimoElementoFocado) {
-      document.execCommand(comando, false, null);
+      this.salvarBloco(this.ultimoElementoFocado.closest('.draggable'));
     }
   }
 
@@ -89,6 +100,7 @@ export default class TextModule extends BaseModule {
     if (this.ultimoElementoFocado) {
       let size = parseInt(window.getComputedStyle(this.ultimoElementoFocado).fontSize) || 14;
       this.ultimoElementoFocado.style.fontSize = (size + direcao) + "px";
+      this.salvarBloco(this.ultimoElementoFocado.closest('.draggable'));
     }
   }
 
@@ -96,12 +108,10 @@ export default class TextModule extends BaseModule {
     if (this.ultimoElementoFocado) {
       this.ultimoElementoFocado.className = "sub-campo " + classe;
       this.ultimoElementoFocado.focus();
+      this.salvarBloco(this.ultimoElementoFocado.closest('.draggable'));
     }
   }
 
-  /**
-   * Instancia a árvore estrutural do bloco de texto no DOM.
-   */
   criarBloco(id = null, style = null, data = null) {
     const canvas = document.getElementById("canvas");
     if (!canvas) return;
@@ -142,7 +152,6 @@ export default class TextModule extends BaseModule {
     div.querySelector(".title-input").oninput = () => this.salvarBloco(div);
     listaCampos.addEventListener("input", () => this.salvarBloco(div));
 
-    // Hidrata campos existentes do payload de persistência
     if (data?.campos) {
       data.campos.forEach(c => {
         const f = document.createElement("div");
@@ -153,9 +162,12 @@ export default class TextModule extends BaseModule {
       });
     }
 
-    // Vincula o motor de arrasto do Core
     window.CanvasManager.makeDraggable(div, (target) => this.salvarBloco(target));
     canvas.appendChild(div);
+
+    if (window.ResizeModule && typeof window.ResizeModule.atribuirResize === 'function') {
+      window.ResizeModule.atribuirResize(div);
+    }
   }
 
   salvarBloco(div) {

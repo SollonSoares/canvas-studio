@@ -10,6 +10,7 @@ export default class ChartModule extends BaseModule {
     super('chart', 'Gráfico de Status Ninja');
     this.boundSearch = this.filtrarBlocosPorTitulo.bind(this);
     this.boundMoving = this.tratarMovimentacaoBloco.bind(this);
+    this.timeouts = new Map();
   }
 
   init() {
@@ -29,19 +30,17 @@ export default class ChartModule extends BaseModule {
     super.destroy();
     bus.off('search:query', this.boundSearch);
     bus.off('canvas:element-moving', this.boundMoving);
+    this.timeouts.forEach(t => clearTimeout(t));
+    this.timeouts.clear();
   }
 
-  /**
-   * Converte e normaliza de forma estrita os dados de entrada vindos do DOM ou do JSON.
-   */
   calcularNotas(dados) {
-    // Função auxiliar para discernir se o valor inserido é a porcentagem bruta (0-100) ou a nota final ja processada (0.5-8.0)
     const extrairNotaPorcentagem = (valor) => {
       let num = Number(valor || 0);
       if (num > 8.0) {
-        return (num / 10) + 0.5; // Converte escala 0-100 para 0.5-8.0
+        return (num / 10) + 0.5;
       }
-      return num; // Mantém caso já seja a nota final vinda do JSON antigo
+      return num;
     };
 
     let tai = extrairNotaPorcentagem(dados.taijutsu);
@@ -51,7 +50,6 @@ export default class ChartModule extends BaseModule {
     let vig = Number(dados.vigor || 0);
     let int = Number(dados.inteligencia || 0);
     
-    // Tratamento dedutivo para o Chakra: se for maior que 10, é o valor bruto de porcentagem. Se for entre 6 e 10, aplica formula.
     let rawChakra = Number(dados.chakraMax || dados.chakra || 6);
     let chk = 0.5;
     if (rawChakra > 10) {
@@ -59,7 +57,7 @@ export default class ChartModule extends BaseModule {
     } else if (rawChakra >= 6) {
       chk = (rawChakra - 6) / 10;
     } else {
-      chk = rawChakra; // Já veio calculado como nota final (ex: 0.5 a 8.0) do backup antigo
+      chk = rawChakra;
     }
 
     const ajustarNota = (nota) => {
@@ -213,7 +211,7 @@ export default class ChartModule extends BaseModule {
       </div>
     `;
 
-    const atualizarEGravar = () => {
+    const atualizarEGravar = (instantaneo = false) => {
       const dadosInputs = {
         taijutsu: Number(div.querySelector('[data-stat="taijutsu"]').value),
         ninjutsu: Number(div.querySelector('[data-stat="ninjutsu"]').value),
@@ -233,25 +231,35 @@ export default class ChartModule extends BaseModule {
         this.desenharGrafico(targetCanvas, notas);
       }
 
-      localStorage.setItem("data_" + uid, JSON.stringify({
-        top: div.style.top,
-        left: div.style.left,
-        type: "chart",
-        title: div.querySelector(".title-input").value,
-        inputs: dadosInputs
-      }));
+      const persistir = () => {
+        localStorage.setItem("data_" + uid, JSON.stringify({
+          top: div.style.top,
+          left: div.style.left,
+          type: "chart",
+          title: div.querySelector(".title-input").value,
+          inputs: dadosInputs
+        }));
+      };
+
+      if (instantaneo) {
+        persistir();
+      } else {
+        if (this.timeouts.has(uid)) clearTimeout(this.timeouts.get(uid));
+        this.timeouts.set(uid, setTimeout(persistir, 250));
+      }
     };
 
-    div.querySelectorAll("input").forEach(inp => inp.addEventListener("input", atualizarEGravar));
+    div.querySelectorAll("input").forEach(inp => inp.addEventListener("input", () => atualizarEGravar(false)));
     div.querySelector(".close-btn").onclick = () => {
+      if (this.timeouts.has(uid)) clearTimeout(this.timeouts.get(uid));
       localStorage.removeItem("data_" + uid);
       div.remove();
     };
 
-    window.CanvasManager.makeDraggable(div, () => atualizarEGravar());
+    window.CanvasManager.makeDraggable(div, () => atualizarEGravar(true));
     canvasContainer.appendChild(div);
     
-    setTimeout(atualizarEGravar, 0);
+    atualizarEGravar(true);
   }
 
   tratarMovimentacaoBloco(divAlvo) {
