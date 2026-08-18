@@ -1,8 +1,9 @@
 /**
  * MODULES: ImageModule.js
- * Gerenciamento de imagens limpo, adaptado para herdar o ResizeModule global.
+ * Gerenciamento de blocos de imagem integrados com o Design System.
  */
 import { BaseModule } from '../BaseModule.js';
+import { Icons, createButtonContent } from '../../core/IconHelper.js';
 
 export default class ImageModule extends BaseModule {
   constructor() {
@@ -10,11 +11,13 @@ export default class ImageModule extends BaseModule {
   }
 
   init() {
-    const containerBotoes = document.getElementById("container-gerenciamento-botoes");
+    const containerBotoes = document.getElementById("container-criacao-botoes") || document.getElementById("container-gerenciamento-botoes");
     if (containerBotoes) {
       const btnAddImg = document.createElement("button");
       btnAddImg.id = "btn-add-image";
-      btnAddImg.innerText = "Inserir Imagem por URL";
+      btnAddImg.className = "btn btn-secondary";
+      btnAddImg.innerHTML = createButtonContent('image', 'Inserir Imagem');
+      btnAddImg.title = "Insere uma imagem por URL pública";
       btnAddImg.onclick = () => this.solicitarUrlImagem();
       containerBotoes.appendChild(this.TRACK_UI(btnAddImg));
     }
@@ -48,17 +51,17 @@ export default class ImageModule extends BaseModule {
     if (dadosIniciais?.height) div.style.height = dadosIniciais.height + "px";
     div.style.cssText += style || "top:100px; left:100px;";
 
-    const titulo = dadosIniciais?.title || "Imagem do personagem";
+    const titulo = dadosIniciais?.title || "Imagem";
     const urlImagem = dadosIniciais?.url || "";
     
     div.innerHTML = `
       <div class="drag-handle">
-        <span>✥ Imagem</span>
-        <input class="title-input" value="${titulo}" style="flex:1; margin:0 5px; background:none; border:none; color:inherit; outline:none; font-weight:bold;">
-        <span class="close-btn" style="cursor:pointer;">X</span>
+        <span class="drag-handle-grip">${Icons.grip}</span>
+        <input class="title-input" value="${titulo}" placeholder="Título da imagem...">
+        <span class="close-btn" title="Excluir">${Icons.close}</span>
       </div>
-      <div class="image-wrapper" style="width:100%; height:calc(100% - 30px); padding:5px; box-sizing:border-box; display:flex; align-items:center; justify-content:center;">
-        <img id="img_view_${id}" src="${urlImagem}" alt="Carregando..." style="width:100%; height:100%; object-fit:cover; display:block; border-radius:4px;">
+      <div class="image-wrapper" style="width:100%; height:calc(100% - 36px); padding:6px; box-sizing:border-box; display:flex; align-items:center; justify-content:center;">
+        <img id="img_view_${id}" src="${urlImagem}" alt="Carregando..." draggable="false" style="width:100%; height:100%; object-fit:cover; display:block; border-radius:var(--radius-sm);">
       </div>
     `;
 
@@ -89,7 +92,6 @@ export default class ImageModule extends BaseModule {
     window.CanvasManager.makeDraggable(div, () => salvarEstado());
     canvasContainer.appendChild(div);
 
-    // Injeção explícita pós-inserção no DOM para mitigar falhas do ciclo do MutationObserver
     if (window.ResizeModule && typeof window.ResizeModule.atribuirResize === 'function') {
       window.ResizeModule.atribuirResize(div);
     }

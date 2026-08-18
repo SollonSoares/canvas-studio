@@ -1,203 +1,196 @@
 /**
  * MODULES: TextModule.js
- * Encapsula a criação de blocos de texto editáveis e a barra de ferramentas WYSIWYG.
+ * Gerenciamento de blocos textuais e barra contextual WYSIWYG.
+ * Suporta reidratação completa de strings e objetos de campos com estilos e formatação.
  */
 import { BaseModule } from '../BaseModule.js';
 import { bus } from '../../core/EventBus.js';
+import { Icons, createButtonContent } from '../../core/IconHelper.js';
 
 export default class TextModule extends BaseModule {
   constructor() {
-    super('text', 'Bloco de Texto Dinâmico');
-    this.ultimoElementoFocado = null;
-    this.boundSearch = this.filtrarBlocosPorTexto.bind(this);
+    super('text', 'Módulo de Texto');
+    this.ultimoAlvoFocado = null;
   }
 
   init() {
-    const containerBotoes = document.getElementById("container-gerenciamento-botoes");
+    const containerBotoes = document.getElementById("container-criacao-botoes") || document.getElementById("container-gerenciamento-botoes");
     const grupoWysiwyg = document.getElementById("group-wysiwyg");
 
     if (containerBotoes) {
       const btnAddText = document.createElement("button");
-      btnAddText.id = "btn-add";
-      btnAddText.innerText = "Adicionar Bloco";
-      btnAddText.onclick = () => this.criarBloco();
+      btnAddText.id = "btn-add-text";
+      btnAddText.className = "btn btn-secondary";
+      btnAddText.innerHTML = createButtonContent('text', 'Bloco de Texto');
+      btnAddText.title = "Cria um novo bloco de texto com formatação";
+      btnAddText.onclick = () => this.criarNovoBlocoTexto();
       containerBotoes.appendChild(this.TRACK_UI(btnAddText));
     }
 
     if (grupoWysiwyg) {
-      grupoWysiwyg.innerHTML = `
-        <span class="menu-label">EDIÇÃO DE TEXTO</span>
-        <div class="wysiwyg-grid">
-          <button id="wysiwyg-b">B</button>
-          <button id="wysiwyg-i">I</button>
-          <button id="wysiwyg-u">U</button>
-          <button id="wysiwyg-aplus">A+</button>
-          <button id="wysiwyg-aminus">A-</button>
-        </div>
-        <button id="wysiwyg-titulo">Título</button>
-        <button id="wysiwyg-conteudo">Conteúdo</button>
-        <button id="wysiwyg-num">Numérico</button>
-      `;
-      grupoWysiwyg.style.display = "block";
-
-      grupoWysiwyg.querySelector("#wysiwyg-b").onmousedown = (e) => { e.preventDefault(); this.formatarInline('strong'); };
-      grupoWysiwyg.querySelector("#wysiwyg-i").onmousedown = (e) => { e.preventDefault(); this.formatarInline('em'); };
-      grupoWysiwyg.querySelector("#wysiwyg-u").onmousedown = (e) => { e.preventDefault(); this.formatarInline('u'); };
-      grupoWysiwyg.querySelector("#wysiwyg-aplus").onmousedown = (e) => { e.preventDefault(); this.ajustarFonte(1); };
-      grupoWysiwyg.querySelector("#wysiwyg-aminus").onmousedown = (e) => { e.preventDefault(); this.ajustarFonte(-1); };
-      grupoWysiwyg.querySelector("#wysiwyg-titulo").onmousedown = (e) => { e.preventDefault(); this.aplicarEstilo('classe-titulo'); };
-      grupoWysiwyg.querySelector("#wysiwyg-conteudo").onmousedown = (e) => { e.preventDefault(); this.aplicarEstilo('classe-conteudo'); };
-      grupoWysiwyg.querySelector("#wysiwyg-num").onmousedown = (e) => { e.preventDefault(); this.aplicarEstilo('classe-num'); };
+      this.montarBarraWysiwyg(grupoWysiwyg);
     }
 
-    this.boundCapturarFoco = this.capturarFoco.bind(this);
-    document.addEventListener("focusin", this.boundCapturarFoco);
-    bus.on('search:query', this.boundSearch);
+    this.escutarEventosGlobais();
   }
 
-  destroy() {
-    super.destroy();
-    const grupoWysiwyg = document.getElementById("group-wysiwyg");
-    if (grupoWysiwyg) {
-      grupoWysiwyg.innerHTML = "";
-      grupoWysiwyg.style.display = "none";
-    }
-    document.removeEventListener("focusin", this.boundCapturarFoco);
-    bus.off('search:query', this.boundSearch);
+  montarBarraWysiwyg(container) {
+    container.innerHTML = `
+      <span class="menu-label">EDIÇÃO DE TEXTO</span>
+      <div class="wysiwyg-toolbar">
+        <button type="button" class="btn-wysiwyg" data-cmd="bold" title="Negrito"><b>B</b></button>
+        <button type="button" class="btn-wysiwyg" data-cmd="italic" title="Itálico"><i>I</i></button>
+        <button type="button" class="btn-wysiwyg" data-cmd="underline" title="Sublinhado"><u>U</u></button>
+        <button type="button" class="btn-wysiwyg" data-cmd="fontSize" data-val="4" title="Aumentar Fonte">A+</button>
+        <button type="button" class="btn-wysiwyg" data-cmd="fontSize" data-val="2" title="Diminuir Fonte">A-</button>
+        <button type="button" class="btn-wysiwyg btn-wysiwyg-wide" data-classe="classe-titulo">Título</button>
+        <button type="button" class="btn-wysiwyg btn-wysiwyg-wide" data-classe="classe-conteudo">Corpo</button>
+        <button type="button" class="btn-wysiwyg btn-wysiwyg-wide" data-classe="classe-num">Num</button>
+      </div>
+    `;
+
+    container.querySelectorAll('.btn-wysiwyg').forEach(btn => {
+      btn.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        
+        const cmd = btn.dataset.cmd;
+        const val = btn.dataset.val || null;
+        const classe = btn.dataset.classe;
+
+        if (cmd) {
+          document.execCommand(cmd, false, val);
+        } else if (classe && this.ultimoAlvoFocado) {
+          this.ultimoAlvoFocado.classList.remove('classe-titulo', 'classe-conteudo', 'classe-num');
+          this.ultimoAlvoFocado.classList.add(classe);
+          this.ultimoAlvoFocado.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      });
+    });
   }
 
-  capturarFoco(e) {
-    if (e.target.classList.contains("sub-campo")) {
-      this.ultimoElementoFocado = e.target;
-    }
-  }
-
-  formatarInline(tag) {
-    const selecao = window.getSelection();
-    if (!selecao.rangeCount || selecao.isCollapsed) return;
-    
-    const range = selecao.getRangeAt(0);
-    const elementoPai = range.commonAncestorContainer.parentElement;
-    
-    if (elementoPai && elementoPai.tagName.toLowerCase() === tag) {
-      const texto = document.createTextNode(elementoPai.innerText);
-      elementoPai.parentNode.replaceChild(texto, elementoPai);
-    } else {
-      const wrapper = document.createElement(tag);
-      try {
-        range.surroundContents(wrapper);
-      } catch (e) {
-        wrapper.appendChild(range.extractContents());
-        range.insertNode(wrapper);
+  escutarEventosGlobais() {
+    document.addEventListener('focusin', (e) => {
+      if (e.target.classList && e.target.classList.contains('sub-campo')) {
+        this.ultimoAlvoFocado = e.target;
+        const grupoWysiwyg = document.getElementById("group-wysiwyg");
+        if (grupoWysiwyg) grupoWysiwyg.style.display = "block";
       }
-    }
-    if (this.ultimoElementoFocado) {
-      this.salvarBloco(this.ultimoElementoFocado.closest('.draggable'));
-    }
+    });
+
+    bus.on('search:query', (query) => {
+      const blocos = document.querySelectorAll('.draggable[data-type="text"]');
+      blocos.forEach(bloco => {
+        const texto = bloco.innerText.toLowerCase();
+        bloco.style.display = texto.includes(query) ? "block" : "none";
+      });
+    });
   }
 
-  ajustarFonte(direcao) {
-    if (this.ultimoElementoFocado) {
-      let size = parseInt(window.getComputedStyle(this.ultimoElementoFocado).fontSize) || 14;
-      this.ultimoElementoFocado.style.fontSize = (size + direcao) + "px";
-      this.salvarBloco(this.ultimoElementoFocado.closest('.draggable'));
-    }
+  criarNovoBlocoTexto() {
+    const uid = "txt_" + Date.now();
+    this.criarBloco(uid, "top:100px; left:100px; width:260px; height:180px;", {
+      title: "Novo Bloco",
+      campos: ["", ""]
+    });
   }
 
-  aplicarEstilo(classe) {
-    if (this.ultimoElementoFocado) {
-      this.ultimoElementoFocado.className = "sub-campo " + classe;
-      this.ultimoElementoFocado.focus();
-      this.salvarBloco(this.ultimoElementoFocado.closest('.draggable'));
+  normalizarCamposHTML(camposBrutos) {
+    if (!camposBrutos) {
+      return '<div class="sub-campo" contenteditable="true" spellcheck="false"></div>';
     }
+
+    if (typeof camposBrutos === 'string') {
+      return `<div class="sub-campo" contenteditable="true" spellcheck="false">${camposBrutos}</div>`;
+    }
+
+    if (Array.isArray(camposBrutos)) {
+      if (camposBrutos.length === 0) {
+        return '<div class="sub-campo" contenteditable="true" spellcheck="false"></div>';
+      }
+
+      return camposBrutos.map(c => {
+        if (typeof c === 'string') {
+          return `<div class="sub-campo" contenteditable="true" spellcheck="false">${c}</div>`;
+        }
+
+        if (c && typeof c === 'object') {
+          const html = c.html !== undefined ? c.html : (c.text !== undefined ? c.text : (c.conteudo !== undefined ? c.conteudo : ''));
+          let cls = c.className || 'sub-campo';
+          if (!cls.includes('sub-campo')) {
+            cls = 'sub-campo ' + cls;
+          }
+          return `<div class="${cls}" contenteditable="true" spellcheck="false">${html}</div>`;
+        }
+
+        return '<div class="sub-campo" contenteditable="true" spellcheck="false"></div>';
+      }).join('');
+    }
+
+    return '<div class="sub-campo" contenteditable="true" spellcheck="false"></div>';
   }
 
-  criarBloco(id = null, style = null, data = null) {
-    const canvas = document.getElementById("canvas");
-    if (!canvas) return;
+  criarBloco(id, style, dadosIniciais) {
+    const canvasContainer = document.getElementById("canvas");
+    if (!canvasContainer) return;
 
-    const uid = id || "t_" + Date.now();
+    const blocoAntigo = document.getElementById("block_" + id);
+    if (blocoAntigo) blocoAntigo.remove();
+
     const div = document.createElement("div");
     div.className = "draggable";
-    div.dataset.id = uid;
+    div.id = "block_" + id;
+    div.dataset.id = id;
     div.dataset.type = "text";
-    div.style.cssText = style || "top:100px; left:100px;";
+    
+    if (dadosIniciais?.width) div.style.width = dadosIniciais.width + "px";
+    if (dadosIniciais?.height) div.style.height = dadosIniciais.height + "px";
+    div.style.cssText += style || "top:100px; left:100px;";
+
+    const titulo = dadosIniciais?.title || "Anotações";
+    const camposHtml = this.normalizarCamposHTML(dadosIniciais?.campos || dadosIniciais?.conteudo || dadosIniciais?.text);
 
     div.innerHTML = `
       <div class="drag-handle">
-        <span>✥</span>
-        <input class="title-input" id="input-title-${uid}" name="title_field_${uid}" value="${data?.title || "TÍTULO"}">
-        <span class="close-btn" style="cursor:pointer;">X</span>
+        <span class="drag-handle-grip">${Icons.grip}</span>
+        <input class="title-input" value="${titulo}" placeholder="Título do bloco...">
+        <span class="close-btn" title="Excluir">${Icons.close}</span>
       </div>
-      <div class="lista-campos"></div>
-      <button class="add-btn" style="width:auto; margin:5px;">+</button>
+      <div class="lista-campos" style="overflow-y:auto; height:calc(100% - 36px); padding:8px;">
+        ${camposHtml}
+      </div>
     `;
 
-    const listaCampos = div.querySelector(".lista-campos");
+    const salvarEstado = () => {
+      const listaCampos = Array.from(div.querySelectorAll(".sub-campo")).map(el => ({
+        html: el.innerHTML,
+        className: el.className
+      }));
 
-    div.querySelector(".add-btn").onclick = () => {
-      const f = document.createElement("div");
-      f.className = "sub-campo";
-      f.contentEditable = true;
-      f.innerText = "Novo...";
-      listaCampos.appendChild(f);
-      this.salvarBloco(div);
+      localStorage.setItem("data_" + id, JSON.stringify({
+        top: div.style.top,
+        left: div.style.left,
+        width: div.offsetWidth,
+        height: div.offsetHeight,
+        type: "text",
+        title: div.querySelector(".title-input").value,
+        campos: listaCampos
+      }));
     };
 
+    div.addEventListener('input', salvarEstado);
+
     div.querySelector(".close-btn").onclick = () => {
-      localStorage.removeItem("data_" + uid);
+      localStorage.removeItem("data_" + id);
       div.remove();
     };
 
-    div.querySelector(".title-input").oninput = () => this.salvarBloco(div);
-    listaCampos.addEventListener("input", () => this.salvarBloco(div));
-
-    if (data?.campos) {
-      data.campos.forEach(c => {
-        const f = document.createElement("div");
-        f.className = c.className;
-        f.contentEditable = true;
-        f.innerHTML = c.html;
-        listaCampos.appendChild(f);
-      });
-    }
-
-    window.CanvasManager.makeDraggable(div, (target) => this.salvarBloco(target));
-    canvas.appendChild(div);
+    window.CanvasManager.makeDraggable(div, () => salvarEstado());
+    canvasContainer.appendChild(div);
 
     if (window.ResizeModule && typeof window.ResizeModule.atribuirResize === 'function') {
       window.ResizeModule.atribuirResize(div);
     }
-  }
 
-  salvarBloco(div) {
-    if (!div) return;
-    const data = {
-      top: div.style.top,
-      left: div.style.left,
-      type: "text",
-      title: div.querySelector(".title-input")?.value || "TÍTULO",
-      campos: Array.from(div.querySelectorAll(".lista-campos > div")).map(c => ({
-        html: c.innerHTML,
-        className: c.className
-      }))
-    };
-    localStorage.setItem("data_" + div.dataset.id, JSON.stringify(data));
-  }
-
-  filtrarBlocosPorTexto(termo) {
-    const blocos = document.querySelectorAll('.draggable[data-type="text"]');
-    blocos.forEach(bloco => {
-      const titulo = bloco.querySelector(".title-input")?.value.toLowerCase() || "";
-      const campos = Array.from(bloco.querySelectorAll(".sub-campo"))
-                          .map(c => c.innerText.toLowerCase())
-                          .join(" ");
-
-      if (titulo.includes(termo) || campos.includes(termo)) {
-        bloco.style.display = "";
-      } else {
-        bloco.style.display = "none";
-      }
-    });
+    salvarEstado();
   }
 }

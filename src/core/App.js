@@ -1,11 +1,12 @@
 /**
  * CORE: App.js
- * O Orquestrador Central do Ecossistema. Gerencia o ciclo de vida, UI fixa, modais e injeção dinâmica.
+ * O Orquestrador Central do Ecossistema. Gerencia o ciclo de vida, UI fixa, modais e injeção dinâmica de módulos.
  */
 import { dbManager } from './DB.js';
 import { bus } from './EventBus.js';
 import { CanvasManager } from './CanvasManager.js';
 import { BaseModule } from '../modules/BaseModule.js';
+import { Icons, createButtonContent } from './IconHelper.js';
 
 // Importação síncrona dos módulos nativos do sistema
 import PortabilityModule from '../modules/portability/PortabilityModule.js';
@@ -13,29 +14,108 @@ import TextModule from '../modules/text/TextModule.js';
 import ImageModule from '../modules/image/ImageModule.js';
 import ChartModule from '../modules/chart/ChartModule.js';
 import ResizeModule from '../modules/resize/ResizeModule.js';
+import OrganizerModule from '../modules/organizer/OrganizerModule.js';
 
 // Expõe os contratos e utilitários globais no escopo do navegador (window)
 window.BaseModule = BaseModule;
 window.CanvasManager = CanvasManager;
+window.Icons = Icons;
+window.createButtonContent = createButtonContent;
+window.bus = bus;
+
+/**
+ * Adaptador Dinâmico para scripts e classes de módulos enviados via Upload.
+ * Permite ciclo de vida completo (init/destroy) e remoção atômica do DOM.
+ */
+export class DynamicScriptModule extends BaseModule {
+  constructor(id, name, codeString) {
+    super(id, name);
+    this.codeString = codeString;
+    this.instance = null;
+  }
+
+  init() {
+    this.destroy(); // Garante limpeza prévia
+
+    const nodesBefore = new Set(document.querySelectorAll('*'));
+
+    try {
+      // Injeta variáveis no escopo e executa o código
+      const func = new Function('BaseModule', 'Icons', 'createButtonContent', 'bus', 'CanvasManager', `
+        ${this.codeString}
+        if (typeof TextFormatterModule !== 'undefined') return TextFormatterModule;
+        if (typeof CustomModule !== 'undefined') return CustomModule;
+        return null;
+      `);
+
+      const exportedClass = func(window.BaseModule, window.Icons, window.createButtonContent, window.bus, window.CanvasManager);
+
+      // Se o script exportar uma classe BaseModule
+      if (exportedClass && typeof exportedClass === 'function') {
+        this.instance = new exportedClass();
+        this.instance.init();
+        return;
+      }
+
+      // Se for um script direto (IIFE ou widget standalone), rastreia os nós adicionados ao DOM
+      document.querySelectorAll('*').forEach(el => {
+        if (!nodesBefore.has(el)) {
+          if (el.parentElement === document.body || el.closest('#nav-controls') || el.id.includes('widget')) {
+            this.TRACK_UI(el);
+          }
+        }
+      });
+    } catch (e) {
+      console.error(`Erro ao inicializar módulo dinâmico "${this.name}":`, e);
+    }
+  }
+
+  destroy() {
+    if (this.instance && typeof this.instance.destroy === 'function') {
+      try {
+        this.instance.destroy();
+      } catch (e) {
+        console.error(`Erro ao destruir sub-instância de "${this.name}":`, e);
+      }
+      this.instance = null;
+    }
+
+    super.destroy();
+
+    // Limpeza de segurança para widgets conhecidos
+    const widgets = document.querySelectorAll(`[id*="widget"], [id*="formatter"], [id*="dice"], [data-module-id="${this.id}"]`);
+    widgets.forEach(w => {
+      if (w.parentElement === document.body) {
+        w.remove();
+      }
+    });
+  }
+}
 
 class AppEngine {
   constructor() {
     this.registry = new Map();
     
     this.modulesState = JSON.parse(localStorage.getItem('app_modules_state')) || {
+      organizer: true,
       portability: true,
       text: true,
       image: true,
       chart: true,
       resize: true
     };
+
+    // Módulos customizados persistidos no localStorage
+    this.customModules = JSON.parse(localStorage.getItem('app_custom_modules')) || {};
   }
 
   async run() {
     try {
       await dbManager.init();
       this.instanciarModulosNativos();
+      this.carregarModulosCustomizados();
       this.bindCoreUIEvents();
+      this.configurarDimensoesCanvas();
       this.montarPainelModulosUI();
       this.configurarUploadDeModulos();
       this.carregarElementosCanvas();
@@ -45,6 +125,7 @@ class AppEngine {
   }
 
   instanciarModulosNativos() {
+    this.registry.set('organizer', new OrganizerModule());
     this.registry.set('portability', new PortabilityModule());
     this.registry.set('text', new TextModule());
     this.registry.set('image', new ImageModule());
@@ -55,8 +136,22 @@ class AppEngine {
     window.ResizeModule = resizeInst;
 
     this.registry.forEach((instance, key) => {
-      if (this.modulesState[key]) {
+      if (this.modulesState[key] !== false) {
         instance.init();
+      }
+    });
+  }
+
+  carregarModulosCustomizados() {
+    Object.entries(this.customModules).forEach(([id, modData]) => {
+      try {
+        const instance = new DynamicScriptModule(id, modData.name, modData.code);
+        this.registry.set(id, instance);
+        if (this.modulesState[id] !== false) {
+          instance.init();
+        }
+      } catch (err) {
+        console.error(`Falha ao restaurar módulo customizado "${modData.name}":`, err);
       }
     });
   }
@@ -69,50 +164,150 @@ class AppEngine {
 
     this.registry.forEach((modulo, idModulo) => {
       const estarAtivo = this.modulesState[idModulo] !== false;
+      const isCustom = idModulo.startsWith("custom_");
 
       const itemLinha = document.createElement("div");
       itemLinha.style.display = "flex";
       itemLinha.style.alignItems = "center";
       itemLinha.style.justifyContent = "space-between";
-      itemLinha.style.padding = "6px 0";
+      itemLinha.style.padding = "8px 10px";
+      itemLinha.style.marginBottom = "6px";
+      itemLinha.style.background = "var(--bg-input)";
+      itemLinha.style.borderRadius = "var(--radius-sm)";
+      itemLinha.style.border = "1px solid var(--border-subtle)";
+
+      const infoContainer = document.createElement("div");
+      infoContainer.style.display = "flex";
+      infoContainer.style.alignItems = "center";
+      infoContainer.style.gap = "8px";
 
       const labelTexto = document.createElement("span");
       labelTexto.innerText = modulo.name || idModulo;
+      labelTexto.style.fontSize = "12px";
+      labelTexto.style.fontWeight = "500";
+      infoContainer.appendChild(labelTexto);
 
-      const checkbox = document.createElement("input");
-      checkbox.type = "checkbox";
-      checkbox.checked = estarAtivo;
-      
-      checkbox.id = `chk-module-${idModulo}`;
-      checkbox.name = `module_status_${idModulo}`;
-      
-      checkbox.onchange = () => {
-        this.modulesState[idModulo] = checkbox.checked;
+      if (isCustom) {
+        const badge = document.createElement("span");
+        badge.innerText = "Custom";
+        badge.style.fontSize = "9px";
+        badge.style.padding = "2px 5px";
+        badge.style.borderRadius = "4px";
+        badge.style.background = "var(--accent-subtle)";
+        badge.style.color = "var(--accent)";
+        badge.style.fontWeight = "700";
+        badge.style.textTransform = "uppercase";
+        infoContainer.appendChild(badge);
+      }
+
+      const controlsContainer = document.createElement("div");
+      controlsContainer.style.display = "flex";
+      controlsContainer.style.alignItems = "center";
+      controlsContainer.style.gap = "8px";
+
+      // Apple Switch Liga/Desliga Reativo em Tempo Real
+      const switchBtn = document.createElement("button");
+      switchBtn.className = "apple-switch" + (estarAtivo ? " active" : "");
+      switchBtn.title = estarAtivo ? "Desativar módulo" : "Ativar módulo";
+      switchBtn.innerHTML = `<span class="thumb"></span>`;
+
+      switchBtn.onclick = (e) => {
+        e.stopPropagation();
+        const novoEstado = !this.modulesState[idModulo];
+        this.modulesState[idModulo] = novoEstado;
         localStorage.setItem("app_modules_state", JSON.stringify(this.modulesState));
+
+        switchBtn.classList.toggle("active", novoEstado);
+        switchBtn.title = novoEstado ? "Desativar módulo" : "Ativar módulo";
+
+        if (novoEstado) {
+          modulo.init();
+        } else {
+          modulo.destroy();
+        }
+        this.gerenciarVisibilidadeLabelGerenciamento();
       };
 
-      itemLinha.appendChild(labelTexto);
-      itemLinha.appendChild(checkbox);
+      controlsContainer.appendChild(switchBtn);
+
+      // Botão de exclusão para módulos customizados
+      if (isCustom) {
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = "btn-close-style";
+        deleteBtn.title = "Excluir módulo customizado";
+        deleteBtn.innerHTML = Icons.trash;
+        deleteBtn.style.width = "22px";
+        deleteBtn.style.height = "22px";
+        deleteBtn.style.color = "var(--text-muted)";
+
+        deleteBtn.onclick = (e) => {
+          e.stopPropagation();
+          if (confirm(`Deseja excluir permanentemente o módulo "${modulo.name}"?`)) {
+            modulo.destroy();
+            this.registry.delete(idModulo);
+            delete this.customModules[idModulo];
+            delete this.modulesState[idModulo];
+            localStorage.setItem("app_custom_modules", JSON.stringify(this.customModules));
+            localStorage.setItem("app_modules_state", JSON.stringify(this.modulesState));
+            this.montarPainelModulosUI();
+            this.gerenciarVisibilidadeLabelGerenciamento();
+          }
+        };
+        controlsContainer.appendChild(deleteBtn);
+      }
+
+      itemLinha.appendChild(infoContainer);
+      itemLinha.appendChild(controlsContainer);
       painel.appendChild(itemLinha);
     });
 
-    const btnAplicarMudancas = document.createElement("button");
-    btnAplicarMudancas.id = "btn-apply-modules";
-    btnAplicarMudancas.innerText = "Aplicar";
-    btnAplicarMudancas.style.width = "100%";
-    btnAplicarMudancas.style.marginTop = "15px";
-    btnAplicarMudancas.style.textAlign = "center";
-    btnAplicarMudancas.style.background = "var(--accent)";
-    btnAplicarMudancas.style.color = "#ffffff";
-    
-    btnAplicarMudancas.onclick = () => {
-      location.reload();
-    };
-    
-    painel.appendChild(btnAplicarMudancas);
-
     if (this.registry.size === 0) {
-      painel.innerHTML = "<span style='color: rgba(128,128,128,0.6); font-style: italic;'>Nenhum módulo detectado.</span>";
+      painel.innerHTML = "<span style='color: var(--text-muted); font-style: italic; font-size: 12px;'>Nenhum módulo detectado.</span>";
+    }
+  }
+
+  configurarDimensoesCanvas() {
+    const inputW = document.getElementById("input-canvas-w");
+    const inputH = document.getElementById("input-canvas-h");
+    const btnSalvar = document.getElementById("btn-save-canvas-size");
+    const canvas = document.getElementById("canvas");
+
+    const dimensoesSalvas = JSON.parse(localStorage.getItem("app_canvas_dimensions"));
+    if (dimensoesSalvas && canvas) {
+      if (dimensoesSalvas.width) {
+        canvas.style.minWidth = dimensoesSalvas.width + "px";
+        if (inputW) inputW.value = dimensoesSalvas.width;
+      }
+      if (dimensoesSalvas.height) {
+        canvas.style.minHeight = dimensoesSalvas.height + "px";
+        if (inputH) inputH.value = dimensoesSalvas.height;
+      }
+    }
+
+    if (btnSalvar && canvas) {
+      btnSalvar.onclick = () => {
+        const w = parseInt(inputW?.value);
+        const h = parseInt(inputH?.value);
+
+        if (w && w >= 100) {
+          canvas.style.minWidth = w + "px";
+        } else {
+          canvas.style.minWidth = "";
+        }
+
+        if (h && h >= 100) {
+          canvas.style.minHeight = h + "px";
+        } else {
+          canvas.style.minHeight = "";
+        }
+
+        localStorage.setItem("app_canvas_dimensions", JSON.stringify({
+          width: w || null,
+          height: h || null
+        }));
+
+        alert("Dimensões do Canvas aplicadas com sucesso!");
+      };
     }
   }
 
@@ -127,7 +322,6 @@ class AppEngine {
     if (toggleSide && sideMenu) {
       toggleSide.addEventListener("click", () => {
         sideMenu.classList.toggle("collapsed");
-        toggleSide.innerText = sideMenu.classList.contains("collapsed") ? "☰" : "Fechar";
       });
     }
 
@@ -192,15 +386,14 @@ class AppEngine {
   }
 
   injetarBotaoLimparCanvas() {
-    const container = document.getElementById("container-gerenciamento-botoes");
+    const container = document.getElementById("container-palco-botoes") || document.getElementById("container-gerenciamento-botoes");
     if (!container) return;
 
     const btnLimpar = document.createElement("button");
     btnLimpar.id = "btn-clear-canvas";
-    btnLimpar.innerText = "💥 Limpar Tudo";
-    btnLimpar.style.color = "#ff453a";
-    btnLimpar.style.marginTop = "10px";
-    btnLimpar.style.border = "1px dashed rgba(255, 69, 58, 0.4)";
+    btnLimpar.className = "btn btn-danger";
+    btnLimpar.innerHTML = createButtonContent('trash', 'Limpar Canvas');
+    btnLimpar.title = "Apaga permanentemente todos os blocos do Canvas";
 
     btnLimpar.onclick = () => {
       const confirmacao = confirm("⚠️ ATENÇÃO! Esta ação irá apagar TODOS os blocos do Canvas permanentemente. Deseja continuar?");
@@ -215,7 +408,7 @@ class AppEngine {
   async executarResetTotal() {
     try {
       Object.keys(localStorage).forEach(chave => {
-        if (chave.startsWith("data_") && chave !== "data_brand_title" && chave !== "data_modules_state" && chave !== "app_modules_state") {
+        if (chave.startsWith("data_") && chave !== "data_brand_title" && chave !== "data_modules_state" && chave !== "app_modules_state" && chave !== "app_custom_modules" && chave !== "app_canvas_dimensions") {
           localStorage.removeItem(chave);
         }
       });
@@ -245,14 +438,39 @@ class AppEngine {
       const arquivo = e.target.files[0];
       if (!arquivo) return;
 
+      const nomeModulo = arquivo.name.replace(/\.js$/i, '').replace(/[-_]/g, ' ');
+      const idModulo = "custom_" + Date.now();
+
       const leitor = new FileReader();
-      leitor.onload = async (evento) => {
+      leitor.onload = (evento) => {
         try {
-          console.log("Injetando dinamicamente novo módulo externo...");
-          alert("Módulo carregado no interpretador com sucesso!");
+          const codigo = evento.target.result;
+
+          // Cria a instância do módulo dinâmico
+          const instance = new DynamicScriptModule(idModulo, nomeModulo, codigo);
+          this.registry.set(idModulo, instance);
+
+          // Persiste o código do módulo
+          this.customModules[idModulo] = { name: nomeModulo, code: codigo };
+          localStorage.setItem("app_custom_modules", JSON.stringify(this.customModules));
+
+          // Define estado ativado e persiste
+          this.modulesState[idModulo] = true;
+          localStorage.setItem("app_modules_state", JSON.stringify(this.modulesState));
+
+          // Inicializa o módulo imediatamente
+          instance.init();
+
+          // Atualiza a interface da lista no modal
+          this.montarPainelModulosUI();
+          this.gerenciarVisibilidadeLabelGerenciamento();
+
+          alert(`✅ Módulo "${nomeModulo}" carregado e ativado com sucesso!`);
         } catch (erro) {
           console.error("Falha ao processar arquivo de módulo script:", erro);
+          alert("❌ Falha ao carregar o módulo.");
         }
+        inputUpload.value = "";
       };
       leitor.readAsText(arquivo);
     });
@@ -264,7 +482,7 @@ class AppEngine {
     for (let i = 0; i < localStorage.length; i++) {
       const chave = localStorage.key(i);
       
-      if (chave.startsWith("data_") && chave !== "data_brand_title" && chave !== "data_modules_state" && chave !== "app_modules_state") {
+      if (chave.startsWith("data_") && chave !== "data_brand_title" && chave !== "data_modules_state" && chave !== "app_modules_state" && chave !== "app_custom_modules" && chave !== "app_canvas_dimensions") {
         try {
           const dadosBloco = JSON.parse(localStorage.getItem(chave));
           if (!dadosBloco) continue;
@@ -313,15 +531,18 @@ class AppEngine {
   }
 
   gerenciarVisibilidadeLabelGerenciamento() {
-    const container = document.getElementById("container-gerenciamento-botoes");
-    const grupoLabel = document.getElementById("group-gerenciamento");
-    if (container && grupoLabel) {
-      if (container.children.length === 0) {
-        grupoLabel.style.display = "none";
-      } else {
-        grupoLabel.style.display = "flex";
+    const checkGroup = (containerId, groupId) => {
+      const container = document.getElementById(containerId);
+      const grupo = document.getElementById(groupId);
+      if (container && grupo) {
+        grupo.style.display = container.children.length === 0 ? "none" : "flex";
       }
-    }
+    };
+
+    checkGroup("container-criacao-botoes", "group-criacao");
+    checkGroup("container-palco-botoes", "group-palco");
+    checkGroup("container-portabilidade-botoes", "group-portabilidade");
+    checkGroup("container-gerenciamento-botoes", "group-gerenciamento");
   }
 }
 

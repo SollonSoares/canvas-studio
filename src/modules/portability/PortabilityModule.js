@@ -1,138 +1,160 @@
 /**
  * MODULES: PortabilityModule.js
- * Gerencia o pipeline de backup e reidratação atômica do Canvas Studio com suporte a dump de mídia.
+ * Importação e exportação de backups de dados estruturados em arquivo JSON.
+ * Suporta formatos legados e modulares com recarga automática do Canvas.
  */
 import { BaseModule } from '../BaseModule.js';
 import { dbManager } from '../../core/DB.js';
 import { bus } from '../../core/EventBus.js';
+import { Icons, createButtonContent } from '../../core/IconHelper.js';
 
 export default class PortabilityModule extends BaseModule {
   constructor() {
-    super('portability', 'Módulo de Portabilidade');
+    super('portability', 'Portabilidade');
   }
 
   init() {
-    const containerBotoes = document.getElementById("container-gerenciamento-botoes");
+    const containerBotoes = document.getElementById("container-portabilidade-botoes") || document.getElementById("container-gerenciamento-botoes");
     if (!containerBotoes) return;
 
-    const btnImportar = document.createElement("button");
-    btnImportar.id = "btn-import-json";
-    btnImportar.innerText = "Importar JSON";
-    
-    const labelUpload = document.createElement("label");
-    labelUpload.className = "btn-upload-container";
-    labelUpload.style.display = "block";
-    
+    // Input de arquivo invisível
     const hiddenInput = document.createElement("input");
     hiddenInput.type = "file";
-    hiddenInput.accept = ".json";
+    hiddenInput.accept = ".json,application/json";
     hiddenInput.style.display = "none";
-    hiddenInput.onchange = (e) => this.tratarImportacao(e);
-    
-    btnImportar.onclick = () => hiddenInput.click();
-    labelUpload.appendChild(hiddenInput);
-    labelUpload.appendChild(btnImportar);
-    containerBotoes.appendChild(this.TRACK_UI(labelUpload));
+    hiddenInput.onchange = (e) => this.tratarArquivoImportado(e);
+    containerBotoes.appendChild(this.TRACK_UI(hiddenInput));
 
+    // Botão Importar (aciona o input de arquivo diretamente ao clicar)
+    const btnImportar = document.createElement("button");
+    btnImportar.type = "button";
+    btnImportar.id = "btn-import-json";
+    btnImportar.className = "btn btn-secondary";
+    btnImportar.innerHTML = createButtonContent('upload', 'Importar');
+    btnImportar.title = "Importar arquivo de backup JSON";
+    btnImportar.onclick = (e) => {
+      e.preventDefault();
+      hiddenInput.value = "";
+      hiddenInput.click();
+    };
+    containerBotoes.appendChild(this.TRACK_UI(btnImportar));
+
+    // Botão Exportar
     const btnExportar = document.createElement("button");
+    btnExportar.type = "button";
     btnExportar.id = "btn-export-json";
-    btnExportar.innerText = "Exportar JSON";
-    btnExportar.onclick = () => this.tratarExportacaoCompleta();
+    btnExportar.className = "btn btn-secondary";
+    btnExportar.innerHTML = createButtonContent('download', 'Exportar');
+    btnExportar.title = "Exportar todos os blocos em arquivo JSON";
+    btnExportar.onclick = (e) => {
+      e.preventDefault();
+      this.tratarExportacaoCompleta();
+    };
     containerBotoes.appendChild(this.TRACK_UI(btnExportar));
   }
 
   async tratarExportacaoCompleta() {
-    console.log("Iniciando varredura atômica para exportação de dados...");
-    const payloadBackup = {};
+    try {
+      const payloadExportacao = {
+        metadata: {
+          versao: "2.0.0",
+          timestamp: Date.now(),
+          brand: localStorage.getItem("app_brand_title") || "Naruto RPG"
+        },
+        blocos: {}
+      };
 
-    if (localStorage.getItem("app_brand_title")) {
-      payloadBackup["app_brand_title"] = localStorage.getItem("app_brand_title");
-    }
-
-    for (let i = 0; i < localStorage.length; i++) {
-      const chave = localStorage.key(i);
-      
-      if (chave.startsWith("data_") && chave !== "data_brand_title" && chave !== "data_modules_state" && chave !== "app_modules_state") {
-        try {
-          const dadosBloco = JSON.parse(localStorage.getItem(chave));
-          if (!dadosBloco) continue;
-
-          payloadBackup[chave] = dadosBloco;
-        } catch (e) {
-          console.error("Erro ao serializar nó de dados para a exportação:", e);
+      for (let i = 0; i < localStorage.length; i++) {
+        const chave = localStorage.key(i);
+        if (chave.startsWith("data_") && chave !== "data_brand_title" && chave !== "data_modules_state" && chave !== "app_modules_state" && chave !== "app_custom_modules" && chave !== "app_canvas_dimensions") {
+          try {
+            payloadExportacao.blocos[chave] = JSON.parse(localStorage.getItem(chave));
+          } catch (e) {
+            console.warn("Chave ignorada no payload:", chave);
+          }
         }
       }
-    }
 
-    try {
-      const stringData = JSON.stringify(payloadBackup, null, 2);
-      const blob = new Blob([stringData], { type: "application/json" });
+      const blob = new Blob([JSON.stringify(payloadExportacao, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
-      
-      const linkDownload = document.createElement("a");
-      linkDownload.href = url;
-      linkDownload.download = `canvas_studio_backup_${Date.now()}.json`;
-      document.body.appendChild(linkDownload);
-      linkDownload.click();
-      
-      document.body.removeChild(linkDownload);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `canvas_studio_backup_${Date.now()}.json`;
+      link.click();
       URL.revokeObjectURL(url);
-    } catch (errBlob) {
-      console.error("Falha crítica ao gerar arquivo físico de exportação:", errBlob);
+    } catch (err) {
+      console.error("Falha ao exportar arquivo JSON:", err);
+      alert("Erro ao exportar dados.");
     }
   }
 
-  async tratarImportacao(e) {
-    const arquivo = e.target.files[0];
+  tratarArquivoImportado(event) {
+    const arquivo = event.target.files[0];
     if (!arquivo) return;
 
     const leitor = new FileReader();
-    leitor.onload = async (evt) => {
+    leitor.onload = (e) => {
       try {
-        const payload = JSON.parse(evt.target.result);
-        if (!payload || typeof payload !== 'object') {
-          throw new Error("Formato de schema JSON inválido.");
+        const conteudo = JSON.parse(e.target.result);
+        if (!conteudo) {
+          throw new Error("Arquivo vazio ou inválido.");
         }
 
-        console.log("Validando e normalizando schema de importação...");
+        const confirmacao = confirm("Deseja importar este backup? Os blocos serão carregados no Canvas.");
+        if (!confirmacao) return;
 
-        Object.keys(localStorage).forEach(chave => {
-          if (chave.startsWith("data_") && chave !== "data_brand_title" && chave !== "data_modules_state" && chave !== "app_modules_state") {
-            localStorage.removeItem(chave);
-          }
+        let blocosImportados = {};
+        let brandTitle = null;
+
+        if (conteudo.blocos && typeof conteudo.blocos === 'object') {
+          // Formato modular moderno: { metadata: {...}, blocos: { data_...: {...} } }
+          blocosImportados = conteudo.blocos;
+          brandTitle = conteudo.metadata?.brand;
+        } else if (Array.isArray(conteudo)) {
+          // Formato legado em Array (oldestscript.js): [ { type: "text", ... }, ... ]
+          conteudo.forEach((item, idx) => {
+            const uid = item.imgId || item.id || `import_${Date.now()}_${idx}`;
+            const key = uid.startsWith('data_') ? uid : `data_${uid}`;
+            blocosImportados[key] = item;
+          });
+        } else if (typeof conteudo === 'object') {
+          // Formato de dicionário direto: { data_1: {...}, data_2: {...} }
+          Object.entries(conteudo).forEach(([k, v]) => {
+            if (k === 'metadata' || k === 'app_brand_title') {
+              if (v?.brand) brandTitle = v.brand;
+            } else {
+              const key = k.startsWith('data_') ? k : `data_${k}`;
+              blocosImportados[key] = v;
+            }
+          });
+        }
+
+        const totalChaves = Object.keys(blocosImportados).length;
+        if (totalChaves === 0) {
+          alert("Nenhum bloco válido encontrado no arquivo JSON.");
+          return;
+        }
+
+        // Grava os blocos no localStorage
+        Object.entries(blocosImportados).forEach(([chave, valor]) => {
+          localStorage.setItem(chave, typeof valor === 'string' ? valor : JSON.stringify(valor));
         });
 
-        for (let [chave, valor] of Object.entries(payload)) {
-          if (chave === "app_brand_title" || chave === "data_brand_title") {
-            localStorage.setItem("app_brand_title", typeof valor === 'object' ? (valor.title || "Naruto RPG") : valor);
-            continue;
-          }
-
-          if (chave === "app_modules_state" || chave === "data_modules_state") {
-            continue;
-          }
-
-          let chaveNormalizada = chave;
-          if (!chave.startsWith("data_")) {
-            chaveNormalizada = "data_" + chave;
-          }
-
-          if (valor && typeof valor === 'object') {
-            localStorage.setItem(chaveNormalizada, JSON.stringify(valor));
-          }
+        if (brandTitle) {
+          localStorage.setItem("app_brand_title", brandTitle);
+          const brandEl = document.getElementById("brand-title");
+          if (brandEl) brandEl.innerText = brandTitle;
         }
 
-        console.log("Sincronização de texto concluída no LocalStorage.");
+        // Emite o evento global para sincronizar o Canvas na hora
+        bus.emit('canvas:reload-request');
 
-        setTimeout(() => {
-          alert("Dados importados com sucesso! Sincronizando e atualizando o Canvas...");
-          location.reload();
-        }, 100);
-
+        alert(`✅ ${totalChaves} bloco(s) importado(s) com sucesso!`);
       } catch (err) {
-        console.error("Erro crítico na reidratação do payload:", err);
-        alert("Falha ao importar JSON: O arquivo está corrompido ou viola o formato estrutural.");
+        console.error("Falha ao importar JSON:", err);
+        alert("❌ Erro na leitura do arquivo de backup JSON.");
       }
+      event.target.value = "";
     };
     leitor.readAsText(arquivo);
   }
