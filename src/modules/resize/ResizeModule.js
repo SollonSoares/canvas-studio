@@ -1,6 +1,7 @@
 /**
  * MODULES: ResizeModule.js
  * Extensão global para injeção de alças de redimensionamento em blocos .draggable.
+ * Suporta Pointer Events (Mouse, Toque Mobile e Stylus) com debounce via requestAnimationFrame.
  */
 import { BaseModule } from '../BaseModule.js';
 import { bus } from '../../core/EventBus.js';
@@ -55,54 +56,41 @@ export default class ResizeModule extends BaseModule {
 
     const handle = document.createElement('div');
     handle.className = 'resize-handle';
-    
-    handle.style.setProperty('position', 'absolute', 'important');
-    handle.style.setProperty('width', '14px', 'important');
-    handle.style.setProperty('height', '14px', 'important');
-    handle.style.setProperty('background-color', '#007aff', 'important');
-    handle.style.setProperty('right', '2px', 'important');
-    handle.style.setProperty('bottom', '2px', 'important');
-    handle.style.setProperty('cursor', 'se-resize', 'important');
-    handle.style.setProperty('border-radius', '50%', 'important');
-    handle.style.setProperty('border', '2px solid #ffffff', 'important');
-    handle.style.setProperty('box-shadow', '0 2px 6px rgba(0,0,0,0.6)', 'important');
-    handle.style.setProperty('z-index', '2147483647', 'important');
-    handle.style.setProperty('display', 'block', 'important');
+    handle.style.touchAction = 'none';
 
     bloco.appendChild(handle);
 
-    handle.addEventListener('mousedown', (e) => {
+    const iniciarResize = (e) => {
       e.stopPropagation();
-      e.preventDefault();
+      if (e.cancelable) e.preventDefault();
 
       const inicioLargura = bloco.offsetWidth;
       const inicioAltura = bloco.offsetHeight;
-      const inicioX = e.clientX;
-      const inicioY = e.clientY;
+      const inicioX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+      const inicioY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
       let ticking = false;
 
       const aoMovimentar = (ev) => {
+        if (ev.cancelable) ev.preventDefault();
+
         if (!ticking) {
           window.requestAnimationFrame(() => {
-            const deltaX = ev.clientX - inicioX;
-            const deltaY = ev.clientY - inicioY;
+            const moveX = ev.clientX !== undefined ? ev.clientX : (ev.touches && ev.touches[0] ? ev.touches[0].clientX : inicioX);
+            const moveY = ev.clientY !== undefined ? ev.clientY : (ev.touches && ev.touches[0] ? ev.touches[0].clientY : inicioY);
 
-            const novaLargura = Math.max(150, inicioLargura + deltaX);
+            const deltaX = moveX - inicioX;
+            const deltaY = moveY - inicioY;
+
+            const novaLargura = Math.max(160, inicioLargura + deltaX);
             const novaAltura = Math.max(100, inicioAltura + deltaY);
 
             bloco.style.width = novaLargura + 'px';
             bloco.style.height = novaAltura + 'px';
 
-            const imgInterna = bloco.querySelector('img');
-            if (imgInterna) {
-              imgInterna.style.width = '100%';
-              imgInterna.style.height = 'calc(100% - 30px)';
-            }
-
             const canvasInterno = bloco.querySelector('canvas');
             if (canvasInterno) {
-              canvasInterno.width = novaLargura - 20;
-              canvasInterno.height = novaAltura - 60;
+              canvasInterno.width = Math.max(100, novaLargura - 20);
+              canvasInterno.height = Math.max(100, novaAltura - 160);
             }
 
             bloco.dispatchEvent(new Event('input', { bubbles: true }));
@@ -113,21 +101,39 @@ export default class ResizeModule extends BaseModule {
       };
 
       const aoFinalizar = () => {
+        document.removeEventListener('pointermove', aoMovimentar);
+        document.removeEventListener('pointerup', aoFinalizar);
+        document.removeEventListener('pointercancel', aoFinalizar);
         document.removeEventListener('mousemove', aoMovimentar);
         document.removeEventListener('mouseup', aoFinalizar);
+        document.removeEventListener('touchmove', aoMovimentar);
+        document.removeEventListener('touchend', aoFinalizar);
+        document.removeEventListener('touchcancel', aoFinalizar);
         
         const uid = bloco.dataset.id;
         const chave = "data_" + uid;
-        const dadosAntigos = JSON.parse(localStorage.getItem(chave));
-        if (dadosAntigos) {
+        try {
+          const dadosAntigos = JSON.parse(localStorage.getItem(chave)) || {};
           dadosAntigos.width = bloco.offsetWidth;
           dadosAntigos.height = bloco.offsetHeight;
           localStorage.setItem(chave, JSON.stringify(dadosAntigos));
+        } catch (err) {
+          console.warn("Falha ao persistir dimensões de resize:", err);
         }
       };
 
+      document.addEventListener('pointermove', aoMovimentar, { passive: false });
+      document.addEventListener('pointerup', aoFinalizar);
+      document.addEventListener('pointercancel', aoFinalizar);
       document.addEventListener('mousemove', aoMovimentar);
       document.addEventListener('mouseup', aoFinalizar);
-    });
+      document.addEventListener('touchmove', aoMovimentar, { passive: false });
+      document.addEventListener('touchend', aoFinalizar);
+      document.addEventListener('touchcancel', aoFinalizar);
+    };
+
+    handle.addEventListener('pointerdown', iniciarResize);
+    handle.addEventListener('touchstart', iniciarResize, { passive: false });
+    handle.addEventListener('mousedown', iniciarResize);
   }
 }

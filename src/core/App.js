@@ -314,10 +314,44 @@ class AppEngine {
   bindCoreUIEvents() {
     const sideMenu = document.getElementById("dashboard-menu");
     const toggleSide = document.getElementById("toggle-sidebar");
+    const mobileMenuTrigger = document.getElementById("mobile-menu-trigger");
+    const btnCloseMobileMenu = document.getElementById("btn-close-mobile-menu");
+    const backdrop = document.getElementById("sidebar-backdrop");
     const modal = document.getElementById("settings-modal");
     const btnOpenSet = document.getElementById("btn-open-settings");
     const btnCloseSet = document.getElementById("btn-close-settings");
     const brandTitle = document.getElementById("brand-title");
+
+    // Gerenciador de Abertura/Fechamento do Menu Gaveta no Mobile
+    const toggleMobileMenu = (abrir) => {
+      if (!sideMenu) return;
+      const isOpen = abrir !== undefined ? abrir : !sideMenu.classList.contains("open");
+      sideMenu.classList.toggle("open", isOpen);
+      if (backdrop) {
+        backdrop.classList.toggle("active", isOpen);
+      }
+    };
+
+    if (mobileMenuTrigger) {
+      mobileMenuTrigger.addEventListener("click", () => toggleMobileMenu(true));
+    }
+
+    if (btnCloseMobileMenu) {
+      btnCloseMobileMenu.addEventListener("click", () => toggleMobileMenu(false));
+    }
+
+    if (backdrop) {
+      backdrop.addEventListener("click", () => toggleMobileMenu(false));
+    }
+
+    // Fecha a gaveta no mobile ao selecionar uma ferramenta
+    sideMenu?.addEventListener("click", (e) => {
+      if (window.innerWidth <= 768) {
+        if (e.target.closest('.btn-secondary') || e.target.closest('.btn-primary') || e.target.closest('#btn-open-settings') || e.target.closest('#btn-clear-canvas')) {
+          toggleMobileMenu(false);
+        }
+      }
+    });
 
     if (toggleSide && sideMenu) {
       toggleSide.addEventListener("click", () => {
