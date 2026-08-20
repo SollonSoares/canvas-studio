@@ -3,6 +3,7 @@
  * Gerenciamento de blocos de imagem integrados com o Design System.
  */
 import { BaseModule } from '../BaseModule.js';
+import { dbManager } from '../../core/DB.js';
 import { Icons, createButtonContent } from '../../core/IconHelper.js';
 
 export default class ImageModule extends BaseModule {
@@ -71,6 +72,54 @@ export default class ImageModule extends BaseModule {
       imgElement.alt = "Erro ao carregar URL";
     };
 
+    // Tenta reidratar do IndexedDB se disponível
+    if (dbManager && typeof dbManager.obterImagemIndexedDB === 'function') {
+      dbManager.obterImagemIndexedDB(id).then(cachedData => {
+        if (cachedData && imgElement) {
+          imgElement.src = cachedData;
+        }
+      }).catch(() => {});
+    }
+
+    // Cache em background para acelerar exportações e funcionamento offline
+    if (urlImagem && !urlImagem.startsWith('data:') && !urlImagem.startsWith('blob:')) {
+      const tentarSalvarNoIndexedDB = async () => {
+        try {
+          const resp = await fetch(urlImagem, { mode: 'cors' });
+          if (resp.ok) {
+            const blob = await resp.blob();
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              if (reader.result && dbManager) {
+                dbManager.salvarImagemIndexedDB(id, reader.result).catch(() => {});
+              }
+            };
+            reader.readAsDataURL(blob);
+            return;
+          }
+        } catch (e) {}
+
+        // Fallback via proxy CORS
+        try {
+          const cleanUrl = urlImagem.replace(/^https?:\/\//i, '');
+          const proxyUrl = `https://images.weserv.nl/?url=${encodeURIComponent(cleanUrl)}`;
+          const resp = await fetch(proxyUrl);
+          if (resp.ok) {
+            const blob = await resp.blob();
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              if (reader.result && dbManager) {
+                dbManager.salvarImagemIndexedDB(id, reader.result).catch(() => {});
+              }
+            };
+            reader.readAsDataURL(blob);
+          }
+        } catch (e) {}
+      };
+
+      setTimeout(tentarSalvarNoIndexedDB, 100);
+    }
+
     const salvarEstado = () => {
       localStorage.setItem("data_" + id, JSON.stringify({
         top: div.style.top,
@@ -86,6 +135,9 @@ export default class ImageModule extends BaseModule {
     div.addEventListener('input', salvarEstado);
     div.querySelector(".close-btn").onclick = () => {
       localStorage.removeItem("data_" + id);
+      if (dbManager && typeof dbManager.removerImagemIndexedDB === 'function') {
+        dbManager.removerImagemIndexedDB(id);
+      }
       div.remove();
     };
 

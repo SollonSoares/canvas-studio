@@ -289,6 +289,7 @@ O ecossistema é modularizado em componentes independentes que implementam a cla
 | **Resize Engine** | [`ResizeModule.js`](file:///e:/Downloads/canvas-studio/src/modules/resize/ResizeModule.js) | Injeção de alça de redimensionamento via `MutationObserver` e `rAF`. | `canvas:block-created` | `LocalStorage` |
 | **Auto Organizer** | [`OrganizerModule.js`](file:///e:/Downloads/canvas-studio/src/modules/organizer/OrganizerModule.js) | Auto-alinhamento em grade e ordenação alfabética. | — | `LocalStorage` |
 | **Portability** | [`PortabilityModule.js`](file:///e:/Downloads/canvas-studio/src/modules/portability/PortabilityModule.js) | Motor de exportação/importação com suporte polimórfico de schemas. | `canvas:reload-request` | `LocalStorage` |
+| **Visual Export** | [`ExportModule.js`](file:///e:/Downloads/canvas-studio/src/modules/export/ExportModule.js) | Exportação de alta resolução (PNG 1x/2x/4x Retina e PDF nativo). | — | — |
 | **Dynamic Plugin** | [`DynamicScriptModule`](file:///e:/Downloads/canvas-studio/src/core/App.js#L30-L93) | Adaptador para carregar scripts `.js` em runtime com rastreamento no DOM. | — | `LocalStorage` |
 
 </details>
@@ -485,7 +486,7 @@ Acesse em seu navegador: **`http://localhost:3000`**
 - [x] **v1.0.0**: Prototipação monolítica e arrasto básico.
 - [x] **v1.3.0**: Migração para ES Modules e persistência em IndexedDB.
 - [x] **v2.0.0**: Micro-Kernel, EventBus desacoplado, SDK de plugins e suite Robot Framework.
-- [ ] **v2.1.0**: Exportação visual completa do Canvas em PNG/PDF de alta resolução (2x/4x Retina).
+- [x] **v2.1.0**: Exportação visual completa do Canvas em PNG/PDF de alta resolução (2x/4x Retina).
 - [ ] **v2.2.0**: Conectores visuais (nós e arestas dinâmicas com Curvas de Bézier) para criação de árvores de jutsus e relacionamentos.
 - [ ] **v3.0.0**: Suporte a PWA instalável offline e widgets customizados de combate.
 

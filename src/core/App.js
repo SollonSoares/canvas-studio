@@ -15,6 +15,7 @@ import ImageModule from '../modules/image/ImageModule.js';
 import ChartModule from '../modules/chart/ChartModule.js';
 import ResizeModule from '../modules/resize/ResizeModule.js';
 import OrganizerModule from '../modules/organizer/OrganizerModule.js';
+import ExportModule from '../modules/export/ExportModule.js';
 
 // Expõe os contratos e utilitários globais no escopo do navegador (window)
 window.BaseModule = BaseModule;
@@ -99,6 +100,7 @@ class AppEngine {
     this.modulesState = JSON.parse(localStorage.getItem('app_modules_state')) || {
       organizer: true,
       portability: true,
+      export: true,
       text: true,
       image: true,
       chart: true,
@@ -127,6 +129,7 @@ class AppEngine {
   instanciarModulosNativos() {
     this.registry.set('organizer', new OrganizerModule());
     this.registry.set('portability', new PortabilityModule());
+    this.registry.set('export', new ExportModule());
     this.registry.set('text', new TextModule());
     this.registry.set('image', new ImageModule());
     this.registry.set('chart', new ChartModule());

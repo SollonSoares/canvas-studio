@@ -75,6 +75,26 @@ export class DBManager {
       };
     });
   }
+
+  /**
+   * Remove fisicamente uma imagem do IndexedDB.
+   * @param {string} id - Chave identificadora da imagem.
+   * @returns {Promise<void>}
+   */
+  removerImagemIndexedDB(id) {
+    return new Promise((resolve) => {
+      if (!this.db) return resolve();
+      try {
+        const tx = this.db.transaction("images", "readwrite");
+        const store = tx.objectStore("images");
+        const req = store.delete(id);
+        req.onsuccess = () => resolve();
+        req.onerror = () => resolve();
+      } catch (e) {
+        resolve();
+      }
+    });
+  }
 }
 
 // Instância única de gerenciamento de persistência exportada para o ecossistema
