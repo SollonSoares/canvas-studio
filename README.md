@@ -120,7 +120,8 @@ graph TB
 
     subgraph DOM ["🖥️ CAMADA DE APRESENTAÇÃO (DOM & UI)"]
         Sidebar["Sidebar Lateral (#dashboard-menu)<br/><i>Drawer Responsivo / WYSIWYG</i>"]:::uiStyle
-        CanvasArea["Palco Dinâmico (#canvas)<br/><i>Grade Infinita / Nós .draggable</i>"]:::uiStyle
+        CanvasArea["Palco Dinâmico (#canvas)<br/><i>Grade Infinita / Nós #canvas-stage</i>"]:::uiStyle
+        HUDCtrl["HUD de Zoom (#zoom-hud-widget)<br/><i>Pill Flutuante / Fit to Screen</i>"]:::uiStyle
         ModalCtrl["Painel de Módulos (#settings-modal)<br/><i>Apple Switches / Upload Dinâmico</i>"]:::uiStyle
     end
 
@@ -140,11 +141,13 @@ graph TB
         ResizeM["ResizeModule<br/><i>MutationObserver & RAF</i>"]:::pluginStyle
         OrgM["OrganizerModule<br/><i>Auto-Grid & Sort Alfabético</i>"]:::pluginStyle
         PortM["PortabilityModule<br/><i>JSON Import/Export Engine</i>"]:::pluginStyle
+        ExportM["ExportModule<br/><i>Canvas 2D Ultra-HD & PDF Multi-page</i>"]:::pluginStyle
+        ZoomM["ZoomModule<br/><i>Pinch-to-Zoom & HUD Flutuante</i>"]:::pluginStyle
         DynMod["DynamicScriptModule<br/><i>Hot-Loaded Custom Scripts</i>"]:::pluginStyle
     end
 
     subgraph PERSISTENCE ["💾 CAMADA DE PERSISTÊNCIA OFFLINE"]
-        LS[("LocalStorage<br/><i>Coordenadas, Título, Configs</i>")]:::storageStyle
+        LS[("LocalStorage<br/><i>Coordenadas, Título, Zoom, Configs</i>")]:::storageStyle
         IDB[("IndexedDB (CanvasMediaDB)<br/><i>ObjectStore 'images' (Base64/Blobs)</i>")]:::storageStyle
     end
 
@@ -153,6 +156,7 @@ graph TB
     PLUGINS -.->|Emitem & Escutam| Bus
     Bus -.->|Reidratação & Notificações| App
     CM -->|Cálculo de Coordenadas| CanvasArea
+    ZoomM -->|Escala & Transformação| CanvasArea
     ResizeM -->|Monitora Nós em Tempo Real| CanvasArea
     App -->|Sincroniza Geometria| LS
     ImageM -->|Persiste Payload Binário| DB
@@ -184,7 +188,7 @@ sequenceDiagram
     Bus->>UI: ResizeModule anexa .resize-handle via MutationObserver
     
     User->>CM: Arrasta o Bloco pelo Handle
-    CM->>CM: Computa Delta + Snap-to-Grid (20px)
+    CM->>CM: Computa Delta (compensado por Zoom) + Snap-to-Grid (20px)
     CM->>UI: Atualiza style.left e style.top
     CM->>Module: onDragEndCallback()
     Module->>Store: Persiste coordenadas (data_{uid}) no LocalStorage
@@ -199,7 +203,7 @@ sequenceDiagram
 O Canvas Studio incorpora algoritmos geométricos e trigonométricos puros para garantir precisão e desempenho a 60fps.
 
 <details>
-<summary><b>📐 Visualizar Fórmulas Trigonométricas, Normalização e Matemática do Snap-to-Grid</b></summary>
+<summary><b>📐 Visualizar Fórmulas Trigonométricas, Normalização e Matemática do Snap-to-Grid e Zoom</b></summary>
 
 <br>
 
@@ -247,10 +251,10 @@ $$Y_i = Y_{\text{centro}} + \left( \frac{V_i}{V_{\text{teto}}} \cdot R_{\text{m�
 
 ---
 
-### 2. Motor Magnético Snap-to-Grid & Compensação de Scroll (`CanvasManager.js`)
-Para evitar desalinhamentos sub-pixel e garantir fluidez visual, as posições dos blocos sofrem quantização com compensação do deslocamento relativo da área de rolagem:
+### 2. Motor Magnético Snap-to-Grid & Compensação de Escala (`CanvasManager.js`)
+Para evitar desalinhamentos sub-pixel e garantir fluidez visual em qualquer nível de zoom, o deslocamento é compensado pelo fator de escala:
 
-$$\Delta X = (X_{\text{ponteiro}} - X_{\text{inicial}}) + (\text{scrollLeft}_{\text{atual}} - \text{scrollLeft}_{\text{inicial}})$$
+$$\Delta X = \frac{(X_{\text{ponteiro}} - X_{\text{inicial}}) + (\text{scrollLeft}_{\text{atual}} - \text{scrollLeft}_{\text{inicial}})}{\text{Zoom}}$$
 
 $$X_{\text{snap}} = \max\left(0, \left\lfloor \frac{X_{\text{elem}} + \Delta X}{20} + 0.5 \right\rfloor \times 20\right)$$
 
@@ -262,6 +266,28 @@ Varre todos os nós ativos, executa ordenação alfabética natural com suporte 
 1. **Classificação**: $\mathcal{O}(N \log N)$ via `String.prototype.localeCompare(..., 'pt-BR', { numeric: true })`.
 2. **Distribuição Espacial**: $\mathcal{O}(N)$ calculando quebra de linha quando $(X_{\text{atual}} + W_i) > (W_{\text{canvas}} - 40)$.
 3. **Animação Concorrente**: Injeta `transition: top 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), left 0.35s ...` e limpa as regras após o término para restaurar o controle manual instantâneo.
+
+---
+
+### 4. Motor de Zoom, Gestos Multitoque & Enquadramento (`ZoomModule.js`)
+Gerencia o campo de visão dinâmico com suporte a gestos de pinça (*pinch-to-zoom*), atalhos de teclado e enquadramento automático (*Fit to Screen*):
+
+1. **Clamping de Zoom**:
+   $$\text{Zoom}_{\text{clamped}} = \max\left(0.2, \min\left(2.5, \text{Zoom}\right)\right)$$
+
+2. **Compensação de Ponto Focal no Scroll**:
+   $$X_{\text{scroll}} = (X_{\text{foco}} \cdot \text{fator}) - (X_{\text{foco}} - X_{\text{viewport}})$$
+
+3. **Cálculo de Enquadramento Inteligente (*Fit to Screen*)**:
+   $$\text{Zoom}_{\text{fit}} = \min\left(1.0, \max\left(0.2, \min\left(\frac{W_{\text{viewport}}}{W_{\text{bbox}} + 2P}, \frac{H_{\text{viewport}}}{H_{\text{bbox}} + 2P}\right)\right)\right)$$
+
+---
+
+### 5. Motor de Renderização Canvas 2D & PDF Multi-páginas (`ExportModule.js`)
+Pipeline de desenho nativo em Canvas 2D imune a *tainted canvas*:
+1. **Pipeline de Imagens 5 Camadas**: IndexedDB $\to$ Blob URL $\to$ Base64 $\to$ Fetch Blob $\to$ Image Native.
+2. **PDF-1.3 Multi-páginas**: Gera Página 1 (Palco Visual) e Páginas 2+ (Apêndice de Notas Expandidas) com tabelas de referência cruzada `[Tag]`.
+3. **Word-Wrap & Tipografia**: Quebra de linhas em parágrafos, blocos `<pre>`, tags `<div>` e quebra caractere por caractere para palavras contínuas.
 
 </details>
 
@@ -279,7 +305,7 @@ O ecossistema é modularizado em componentes independentes que implementam a cla
 | Módulo | Arquivo | Responsabilidade Primária | Eventos Emitidos / Escutados | Persistência |
 | :--- | :--- | :--- | :--- | :--- |
 | **Core Engine** | [`App.js`](file:///e:/Downloads/canvas-studio/src/core/App.js) | Bootstrap, injeção de scripts, orquestração de modais e purga global. | `theme:changed`<br>`canvas:reload-request` | `LocalStorage` |
-| **Canvas Manager** | [`CanvasManager.js`](file:///e:/Downloads/canvas-studio/src/core/CanvasManager.js) | Motor de arraste com Pointer Events, z-index stacking e snap 20px. | — | — |
+| **Canvas Manager** | [`CanvasManager.js`](file:///e:/Downloads/canvas-studio/src/core/CanvasManager.js) | Motor de arraste com Pointer Events, z-index stacking e snap 20px com compensação de zoom. | — | — |
 | **Storage Engine** | [`DB.js`](file:///e:/Downloads/canvas-studio/src/core/DB.js) | Encapsulamento assíncrono em Promises da IndexedDB API. | — | `IndexedDB` |
 | **Event Bus** | [`EventBus.js`](file:///e:/Downloads/canvas-studio/src/core/EventBus.js) | Barramento Pub/Sub com barreira de erro isolada (`try/catch`). | Todos | Memória |
 | **Icon System** | [`IconHelper.js`](file:///e:/Downloads/canvas-studio/src/core/IconHelper.js) | Biblioteca de vetores SVG e gerador de templates de botão. | — | — |
@@ -289,7 +315,8 @@ O ecossistema é modularizado em componentes independentes que implementam a cla
 | **Resize Engine** | [`ResizeModule.js`](file:///e:/Downloads/canvas-studio/src/modules/resize/ResizeModule.js) | Injeção de alça de redimensionamento via `MutationObserver` e `rAF`. | `canvas:block-created` | `LocalStorage` |
 | **Auto Organizer** | [`OrganizerModule.js`](file:///e:/Downloads/canvas-studio/src/modules/organizer/OrganizerModule.js) | Auto-alinhamento em grade e ordenação alfabética. | — | `LocalStorage` |
 | **Portability** | [`PortabilityModule.js`](file:///e:/Downloads/canvas-studio/src/modules/portability/PortabilityModule.js) | Motor de exportação/importação com suporte polimórfico de schemas. | `canvas:reload-request` | `LocalStorage` |
-| **Visual Export** | [`ExportModule.js`](file:///e:/Downloads/canvas-studio/src/modules/export/ExportModule.js) | Exportação de alta resolução (PNG 1x/2x/4x Retina e PDF nativo). | — | — |
+| **Visual Export** | [`ExportModule.js`](file:///e:/Downloads/canvas-studio/src/modules/export/ExportModule.js) | Exportação gráfica ultra-HD (PNG 1x/2x/4x) e PDF multi-páginas nativo com apêndice de notas expandidas. | — | — |
+| **Zoom & Pan** | [`ZoomModule.js`](file:///e:/Downloads/canvas-studio/src/modules/zoom/ZoomModule.js) | Controle de zoom/pan, gestos multitoque (Pinch-to-zoom), HUD flutuante e atalhos. | `canvas:zoom-changed` | `LocalStorage` |
 | **Dynamic Plugin** | [`DynamicScriptModule`](file:///e:/Downloads/canvas-studio/src/core/App.js#L30-L93) | Adaptador para carregar scripts `.js` em runtime com rastreamento no DOM. | — | `LocalStorage` |
 
 </details>
@@ -439,20 +466,22 @@ Análise quantitativa do código e eficiência algorítmica de cada subsistema.
 ─────────────────────────────────────────────────────────────────────────────
 Linguagem          Arquivos        Linhas        Comentários        Código
 ─────────────────────────────────────────────────────────────────────────────
-JavaScript (ES6)         14          2.010                320         1.690
-CSS3 (Tokens)             1            831                 45           786
+JavaScript (ES6)         15          3.650                460         3.190
+CSS3 (Tokens)             1          1.002                 55           947
 HTML5                     1            125                  8           117
 Robot Framework           1            162                 15           147
 ─────────────────────────────────────────────────────────────────────────────
-TOTAL                    17          3.128                388         2.740
+TOTAL                    18          4.939                538         4.401
 ─────────────────────────────────────────────────────────────────────────────
 ```
 
 ### Análise de Complexidade Algorítmica:
 * **Despacho de Eventos (`EventBus.emit`)**: $\mathcal{O}(K)$, onde $K$ é o número de ouvintes registrados no canal.
-* **Alinhamento Magnético (`CanvasManager`)**: $\mathcal{O}(1)$ tempo constante por evento de ponteiro.
+* **Alinhamento Magnético (`CanvasManager`)**: $\mathcal{O}(1)$ tempo constante por evento de ponteiro, com compensação em tempo real do nível de zoom.
 * **Auto-Organização (`OrganizerModule`)**: $\mathcal{O}(N \log N)$ para ordenação dos títulos e $\mathcal{O}(N)$ para posicionamento em grade.
 * **Redimensionamento Otimizado (`ResizeModule`)**: Throttling via `requestAnimationFrame`, limitando o redesenho à taxa nativa de quadros do monitor (60Hz/120Hz/144Hz) sem engasgos de CPU.
+* **Zoom & Pan Multitoque (`ZoomModule`)**: $\mathcal{O}(1)$ para interpolação de escala e $\mathcal{O}(N)$ para cálculo de *Bounding Box* no enquadramento (*Fit to Screen*).
+* **Renderização Gráfica & PDF (`ExportModule`)**: $\mathcal{O}(N \cdot L)$ onde $N$ é o número de blocos e $L$ o número de linhas de texto renderizadas em 2D.
 
 </details>
 
@@ -486,8 +515,9 @@ Acesse em seu navegador: **`http://localhost:3000`**
 - [x] **v1.0.0**: Prototipação monolítica e arrasto básico.
 - [x] **v1.3.0**: Migração para ES Modules e persistência em IndexedDB.
 - [x] **v2.0.0**: Micro-Kernel, EventBus desacoplado, SDK de plugins e suite Robot Framework.
-- [x] **v2.1.0**: Exportação visual completa do Canvas em PNG/PDF de alta resolução (2x/4x Retina).
-- [ ] **v2.2.0**: Conectores visuais (nós e arestas dinâmicas com Curvas de Bézier) para criação de árvores de jutsus e relacionamentos.
+- [x] **v2.1.0**: Exportação visual completa do Canvas em PNG/PDF de alta resolução (2x/4x Retina) e apêndice multi-páginas automatizado de notas expandidas.
+- [x] **v2.2.0**: Módulo de Zoom & Pan com suporte a Pinch-to-Zoom multitoque, HUD flutuante, atalhos de teclado e enquadramento inteligente (*Fit to Screen*) para Mobile e Desktop.
+- [ ] **v2.3.0**: Conectores visuais (nós e arestas dinâmicas com Curvas de Bézier) para criação de árvores de jutsus e relacionamentos.
 - [ ] **v3.0.0**: Suporte a PWA instalável offline e widgets customizados de combate.
 
 ---
