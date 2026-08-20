@@ -141,7 +141,8 @@ graph TB
         ResizeM["ResizeModule<br/><i>MutationObserver & RAF</i>"]:::pluginStyle
         OrgM["OrganizerModule<br/><i>Auto-Grid & Sort Alfabético</i>"]:::pluginStyle
         PortM["PortabilityModule<br/><i>JSON Import/Export Engine</i>"]:::pluginStyle
-        ExportM["ExportModule<br/><i>Canvas 2D Ultra-HD & PDF Multi-page</i>"]:::pluginStyle
+        ExportM["ExportModule<br/><i>Canvas 2D Ultra-HD & Render Engine</i>"]:::pluginStyle
+        PDFB["PDFBuilder<br/><i>Geração Nativa PDF-1.3 Multi-page</i>"]:::pluginStyle
         ZoomM["ZoomModule<br/><i>Pinch-to-Zoom & HUD Flutuante</i>"]:::pluginStyle
         DynMod["DynamicScriptModule<br/><i>Hot-Loaded Custom Scripts</i>"]:::pluginStyle
     end
@@ -152,6 +153,7 @@ graph TB
     end
 
     App -->|Instancia & Supervisiona| PLUGINS
+    ExportM -->|Delega Serialização Binária| PDFB
     PLUGINS -->|Herança de Ciclo de Vida| BaseMod
     PLUGINS -.->|Emitem & Escutam| Bus
     Bus -.->|Reidratação & Notificações| App
@@ -305,17 +307,18 @@ O ecossistema é modularizado em componentes independentes que implementam a cla
 | Módulo | Arquivo | Responsabilidade Primária | Eventos Emitidos / Escutados | Persistência |
 | :--- | :--- | :--- | :--- | :--- |
 | **Core Engine** | [`App.js`](file:///e:/Downloads/canvas-studio/src/core/App.js) | Bootstrap, injeção de scripts, orquestração de modais e purga global. | `theme:changed`<br>`canvas:reload-request` | `LocalStorage` |
-| **Canvas Manager** | [`CanvasManager.js`](file:///e:/Downloads/canvas-studio/src/core/CanvasManager.js) | Motor de arraste com Pointer Events, z-index stacking e snap 20px com compensação de zoom. | — | — |
+| **Canvas Manager** | [`CanvasManager.js`](file:///e:/Downloads/canvas-studio/src/core/CanvasManager.js) | Motor geométrico de arraste com Pointer Events nativos, `setPointerCapture`, z-index stacking e snap 20px compensado por zoom. | — | — |
 | **Storage Engine** | [`DB.js`](file:///e:/Downloads/canvas-studio/src/core/DB.js) | Encapsulamento assíncrono em Promises da IndexedDB API. | — | `IndexedDB` |
 | **Event Bus** | [`EventBus.js`](file:///e:/Downloads/canvas-studio/src/core/EventBus.js) | Barramento Pub/Sub com barreira de erro isolada (`try/catch`). | Todos | Memória |
 | **Icon System** | [`IconHelper.js`](file:///e:/Downloads/canvas-studio/src/core/IconHelper.js) | Biblioteca de vetores SVG e gerador de templates de botão. | — | — |
 | **Chart Plugin** | [`ChartModule.js`](file:///e:/Downloads/canvas-studio/src/modules/chart/ChartModule.js) | Radar trigonométrico 2D e cálculo de médias shinobi. | `search:query` | `LocalStorage` |
-| **Text Plugin** | [`TextModule.js`](file:///e:/Downloads/canvas-studio/src/modules/text/TextModule.js) | Fichas de anotação com barra contextual WYSIWYG, inserção de Tabelas, Div Pre, Div Style e seletores de cor de fonte/background. | `search:query` | `LocalStorage` |
+| **Text Plugin** | [`TextModule.js`](file:///e:/Downloads/canvas-studio/src/modules/text/TextModule.js) | Fichas de anotação com Inspetor Modular WYSIWYG, inserção de Tabelas, Div Pre, Div Style e paleta de cores. | `search:query` | `LocalStorage` |
 | **Image Plugin** | [`ImageModule.js`](file:///e:/Downloads/canvas-studio/src/modules/image/ImageModule.js) | Inserção de ilustrações externas com fallback em `onerror`. | — | `LocalStorage` + `IDB` |
-| **Resize Engine** | [`ResizeModule.js`](file:///e:/Downloads/canvas-studio/src/modules/resize/ResizeModule.js) | Injeção de alça de redimensionamento via `MutationObserver` e `rAF`. | `canvas:block-created` | `LocalStorage` |
+| **Resize Engine** | [`ResizeModule.js`](file:///e:/Downloads/canvas-studio/src/modules/resize/ResizeModule.js) | Injeção de alça de redimensionamento via `MutationObserver`, Pointer Events e `rAF`. | `canvas:block-created` | `LocalStorage` |
 | **Auto Organizer** | [`OrganizerModule.js`](file:///e:/Downloads/canvas-studio/src/modules/organizer/OrganizerModule.js) | Auto-alinhamento em grade e ordenação alfabética. | — | `LocalStorage` |
 | **Portability** | [`PortabilityModule.js`](file:///e:/Downloads/canvas-studio/src/modules/portability/PortabilityModule.js) | Motor de exportação/importação com suporte polimórfico de schemas. | `canvas:reload-request` | `LocalStorage` |
-| **Visual Export** | [`ExportModule.js`](file:///e:/Downloads/canvas-studio/src/modules/export/ExportModule.js) | Exportação gráfica ultra-HD (PNG 1x/2x/4x) e PDF multi-páginas nativo com apêndice de notas expandidas. | — | — |
+| **Visual Export** | [`ExportModule.js`](file:///e:/Downloads/canvas-studio/src/modules/export/ExportModule.js) | Exportação gráfica ultra-HD (PNG 1x/2x/4x) e orquestração de apêndice de notas expandidas. | — | — |
+| **PDF Builder** | [`PDFBuilder.js`](file:///e:/Downloads/canvas-studio/src/modules/export/PDFBuilder.js) | Construtor puro de documentos binários PDF-1.3 multi-páginas, codificação JPEG e tabelas XREF. | — | — |
 | **Zoom & Pan** | [`ZoomModule.js`](file:///e:/Downloads/canvas-studio/src/modules/zoom/ZoomModule.js) | Controle de zoom/pan, gestos multitoque (Pinch-to-zoom), HUD flutuante e atalhos. | `canvas:zoom-changed` | `LocalStorage` |
 | **Dynamic Plugin** | [`DynamicScriptModule`](file:///e:/Downloads/canvas-studio/src/core/App.js#L30-L93) | Adaptador para carregar scripts `.js` em runtime com rastreamento no DOM. | — | `LocalStorage` |
 
@@ -466,12 +469,12 @@ Análise quantitativa do código e eficiência algorítmica de cada subsistema.
 ─────────────────────────────────────────────────────────────────────────────
 Linguagem          Arquivos        Linhas        Comentários        Código
 ─────────────────────────────────────────────────────────────────────────────
-JavaScript (ES6)         15          3.650                460         3.190
-CSS3 (Tokens)             1          1.002                 55           947
+JavaScript (ES6)         16          3.780                480         3.300
+CSS3 (Tokens)             1          1.077                 60         1.017
 HTML5                     1            125                  8           117
 Robot Framework           1            162                 15           147
 ─────────────────────────────────────────────────────────────────────────────
-TOTAL                    18          4.939                538         4.401
+TOTAL                    19          5.144                563         4.581
 ─────────────────────────────────────────────────────────────────────────────
 ```
 

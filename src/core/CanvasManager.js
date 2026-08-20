@@ -1,7 +1,7 @@
 /**
  * CORE: CanvasManager.js
  * Gerenciador geométrico de arraste e posicionamento de blocos no Canvas.
- * Suporta Pointer Events (Mouse, Toque Mobile e Stylus), prevenção de vazamento de memória e scroll em tempo real.
+ * Utiliza Pointer Events modernos com setPointerCapture, throttling via requestAnimationFrame e compensação de zoom.
  */
 let highestZIndex = 100;
 let activeDragCleanup = null;
@@ -21,7 +21,9 @@ export class CanvasManager {
         return;
       }
 
-      // Impede o início de seleção nativa e scroll do navegador durante o arrasto
+      // Apenas botão primário do mouse/touch
+      if (e.button !== undefined && e.button !== 0) return;
+
       if (e.cancelable) {
         e.preventDefault();
       }
@@ -36,11 +38,8 @@ export class CanvasManager {
       element.style.zIndex = highestZIndex;
 
       const canvas = document.getElementById('canvas');
-      const clientX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
-      const clientY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
-
-      const startMouseX = clientX;
-      const startMouseY = clientY;
+      const startMouseX = e.clientX;
+      const startMouseY = e.clientY;
       const startElementLeft = element.offsetLeft;
       const startElementTop = element.offsetTop;
       const startScrollLeft = canvas ? canvas.scrollLeft : 0;
@@ -49,44 +48,48 @@ export class CanvasManager {
       const previousUserSelect = document.body.style.userSelect;
       document.body.style.userSelect = 'none';
 
-      const aoMovimentar = (moveEvent) => {
-        if (moveEvent.cancelable) {
-          moveEvent.preventDefault();
-        }
+      let ticking = false;
+      let lastEvent = null;
 
-        const moveX = moveEvent.clientX !== undefined ? moveEvent.clientX : (moveEvent.touches && moveEvent.touches[0] ? moveEvent.touches[0].clientX : startMouseX);
-        const moveY = moveEvent.clientY !== undefined ? moveEvent.clientY : (moveEvent.touches && moveEvent.touches[0] ? moveEvent.touches[0].clientY : startMouseY);
-
+      const atualizarPosicao = () => {
+        if (!lastEvent) return;
         const currentScrollLeft = canvas ? canvas.scrollLeft : 0;
         const currentScrollTop = canvas ? canvas.scrollTop : 0;
-
         const zoom = window.CanvasZoomLevel || 1.0;
-        const deltaX = ((moveX - startMouseX) + (currentScrollLeft - startScrollLeft)) / zoom;
-        const deltaY = ((moveY - startMouseY) + (currentScrollTop - startScrollTop)) / zoom;
 
-        let novoX = startElementLeft + deltaX;
-        let novoY = startElementTop + deltaY;
+        const deltaX = ((lastEvent.clientX - startMouseX) + (currentScrollLeft - startScrollLeft)) / zoom;
+        const deltaY = ((lastEvent.clientY - startMouseY) + (currentScrollTop - startScrollTop)) / zoom;
 
-        // Snap to Grid (20px)
-        novoX = Math.round(novoX / 20) * 20;
-        novoY = Math.round(novoY / 20) * 20;
+        let novoX = Math.round((startElementLeft + deltaX) / 20) * 20;
+        let novoY = Math.round((startElementTop + deltaY) / 20) * 20;
 
         if (novoX < 0) novoX = 0;
         if (novoY < 0) novoY = 0;
 
         element.style.left = `${novoX}px`;
         element.style.top = `${novoY}px`;
+        ticking = false;
+      };
+
+      const aoMovimentar = (moveEvent) => {
+        if (moveEvent.cancelable) moveEvent.preventDefault();
+        lastEvent = moveEvent;
+        if (!ticking) {
+          window.requestAnimationFrame(atualizarPosicao);
+          ticking = true;
+        }
       };
 
       const aoFinalizar = () => {
-        document.removeEventListener('pointermove', aoMovimentar);
-        document.removeEventListener('pointerup', aoFinalizar);
-        document.removeEventListener('pointercancel', aoFinalizar);
-        document.removeEventListener('mousemove', aoMovimentar);
-        document.removeEventListener('mouseup', aoFinalizar);
-        document.removeEventListener('touchmove', aoMovimentar);
-        document.removeEventListener('touchend', aoFinalizar);
-        document.removeEventListener('touchcancel', aoFinalizar);
+        try {
+          if (handle.hasPointerCapture && handle.hasPointerCapture(e.pointerId)) {
+            handle.releasePointerCapture(e.pointerId);
+          }
+        } catch (err) {}
+
+        handle.removeEventListener('pointermove', aoMovimentar);
+        handle.removeEventListener('pointerup', aoFinalizar);
+        handle.removeEventListener('pointercancel', aoFinalizar);
         window.removeEventListener('blur', aoFinalizar);
         if (canvas) canvas.removeEventListener('scroll', aoMovimentar);
 
@@ -100,21 +103,19 @@ export class CanvasManager {
 
       activeDragCleanup = aoFinalizar;
 
-      // Suporte unificado a Pointer Events, Touch Events e Mouse Events
-      document.addEventListener('pointermove', aoMovimentar, { passive: false });
-      document.addEventListener('pointerup', aoFinalizar);
-      document.addEventListener('pointercancel', aoFinalizar);
-      document.addEventListener('mousemove', aoMovimentar);
-      document.addEventListener('mouseup', aoFinalizar);
-      document.addEventListener('touchmove', aoMovimentar, { passive: false });
-      document.addEventListener('touchend', aoFinalizar);
-      document.addEventListener('touchcancel', aoFinalizar);
+      try {
+        if (handle.setPointerCapture) {
+          handle.setPointerCapture(e.pointerId);
+        }
+      } catch (err) {}
+
+      handle.addEventListener('pointermove', aoMovimentar, { passive: false });
+      handle.addEventListener('pointerup', aoFinalizar);
+      handle.addEventListener('pointercancel', aoFinalizar);
       window.addEventListener('blur', aoFinalizar);
       if (canvas) canvas.addEventListener('scroll', aoMovimentar);
     };
 
     handle.addEventListener('pointerdown', iniciarArrasto);
-    handle.addEventListener('touchstart', iniciarArrasto, { passive: false });
-    handle.addEventListener('mousedown', iniciarArrasto);
   }
 }

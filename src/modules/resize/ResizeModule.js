@@ -1,7 +1,7 @@
 /**
  * MODULES: ResizeModule.js
  * Extensão global para injeção de alças de redimensionamento em blocos .draggable.
- * Suporta Pointer Events (Mouse, Toque Mobile e Stylus) com debounce via requestAnimationFrame.
+ * Suporta Pointer Events modernos com setPointerCapture, debounce via requestAnimationFrame e compensação de zoom.
  */
 import { BaseModule } from '../BaseModule.js';
 import { bus } from '../../core/EventBus.js';
@@ -66,51 +66,53 @@ export default class ResizeModule extends BaseModule {
 
       const inicioLargura = bloco.offsetWidth;
       const inicioAltura = bloco.offsetHeight;
-      const inicioX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
-      const inicioY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
+      const inicioX = e.clientX;
+      const inicioY = e.clientY;
       let ticking = false;
+      let lastEvent = null;
+
+      const atualizarDimensoes = () => {
+        if (!lastEvent) return;
+        const zoom = window.CanvasZoomLevel || 1.0;
+        const deltaX = (lastEvent.clientX - inicioX) / zoom;
+        const deltaY = (lastEvent.clientY - inicioY) / zoom;
+
+        const novaLargura = Math.max(160, inicioLargura + deltaX);
+        const novaAltura = Math.max(100, inicioAltura + deltaY);
+
+        bloco.style.width = novaLargura + 'px';
+        bloco.style.height = novaAltura + 'px';
+
+        const canvasInterno = bloco.querySelector('canvas');
+        if (canvasInterno) {
+          canvasInterno.width = Math.max(100, novaLargura - 20);
+          canvasInterno.height = Math.max(100, novaAltura - 160);
+        }
+
+        bloco.dispatchEvent(new Event('input', { bubbles: true }));
+        ticking = false;
+      };
 
       const aoMovimentar = (ev) => {
         if (ev.cancelable) ev.preventDefault();
-
+        lastEvent = ev;
         if (!ticking) {
-          window.requestAnimationFrame(() => {
-            const moveX = ev.clientX !== undefined ? ev.clientX : (ev.touches && ev.touches[0] ? ev.touches[0].clientX : inicioX);
-            const moveY = ev.clientY !== undefined ? ev.clientY : (ev.touches && ev.touches[0] ? ev.touches[0].clientY : inicioY);
-
-            const zoom = window.CanvasZoomLevel || 1.0;
-            const deltaX = (moveX - inicioX) / zoom;
-            const deltaY = (moveY - inicioY) / zoom;
-
-            const novaLargura = Math.max(160, inicioLargura + deltaX);
-            const novaAltura = Math.max(100, inicioAltura + deltaY);
-
-            bloco.style.width = novaLargura + 'px';
-            bloco.style.height = novaAltura + 'px';
-
-            const canvasInterno = bloco.querySelector('canvas');
-            if (canvasInterno) {
-              canvasInterno.width = Math.max(100, novaLargura - 20);
-              canvasInterno.height = Math.max(100, novaAltura - 160);
-            }
-
-            bloco.dispatchEvent(new Event('input', { bubbles: true }));
-            ticking = false;
-          });
+          window.requestAnimationFrame(atualizarDimensoes);
           ticking = true;
         }
       };
 
       const aoFinalizar = () => {
-        document.removeEventListener('pointermove', aoMovimentar);
-        document.removeEventListener('pointerup', aoFinalizar);
-        document.removeEventListener('pointercancel', aoFinalizar);
-        document.removeEventListener('mousemove', aoMovimentar);
-        document.removeEventListener('mouseup', aoFinalizar);
-        document.removeEventListener('touchmove', aoMovimentar);
-        document.removeEventListener('touchend', aoFinalizar);
-        document.removeEventListener('touchcancel', aoFinalizar);
-        
+        try {
+          if (handle.hasPointerCapture && handle.hasPointerCapture(e.pointerId)) {
+            handle.releasePointerCapture(e.pointerId);
+          }
+        } catch (err) {}
+
+        handle.removeEventListener('pointermove', aoMovimentar);
+        handle.removeEventListener('pointerup', aoFinalizar);
+        handle.removeEventListener('pointercancel', aoFinalizar);
+
         const uid = bloco.dataset.id;
         const chave = "data_" + uid;
         try {
@@ -123,18 +125,17 @@ export default class ResizeModule extends BaseModule {
         }
       };
 
-      document.addEventListener('pointermove', aoMovimentar, { passive: false });
-      document.addEventListener('pointerup', aoFinalizar);
-      document.addEventListener('pointercancel', aoFinalizar);
-      document.addEventListener('mousemove', aoMovimentar);
-      document.addEventListener('mouseup', aoFinalizar);
-      document.addEventListener('touchmove', aoMovimentar, { passive: false });
-      document.addEventListener('touchend', aoFinalizar);
-      document.addEventListener('touchcancel', aoFinalizar);
+      try {
+        if (handle.setPointerCapture) {
+          handle.setPointerCapture(e.pointerId);
+        }
+      } catch (err) {}
+
+      handle.addEventListener('pointermove', aoMovimentar, { passive: false });
+      handle.addEventListener('pointerup', aoFinalizar);
+      handle.addEventListener('pointercancel', aoFinalizar);
     };
 
     handle.addEventListener('pointerdown', iniciarResize);
-    handle.addEventListener('touchstart', iniciarResize, { passive: false });
-    handle.addEventListener('mousedown', iniciarResize);
   }
 }
