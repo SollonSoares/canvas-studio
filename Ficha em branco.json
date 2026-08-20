@@ -1,0 +1,274 @@
+{
+  "metadata": {
+    "versao": "2.0.0",
+    "timestamp": 1787195483878,
+    "brand": "Naruto RPG"
+  },
+  "blocos": {
+    "data_t_17826306591500.2712039409273088": {
+      "top": "0px",
+      "left": "780px",
+      "width": 223,
+      "height": 152,
+      "type": "text",
+      "title": "MOVIMENTAÇÃO",
+      "campos": [
+        {
+          "html": "<div style=\"font-size: 14px;\">nota: Agilidade+modificadores&nbsp;</div><div style=\"font-size: 14px;\">de movimento (metros)</div>",
+          "className": "sub-campo"
+        }
+      ]
+    },
+    "data_t_17826306591500.7270765064330945": {
+      "top": "420px",
+      "left": "1040px",
+      "width": 233,
+      "height": 253,
+      "type": "text",
+      "title": "LISTA DE JUTSOS",
+      "campos": [
+        {
+          "html": "<div><div>✥ <b>JUTSO</b></div><div>Ninjutsu Rank&nbsp;</div><div>fonte de onde aprendeu o jutso</div><div><br></div><div><div><pre style=\"margin-bottom: 8px; padding: 8px; font-family: sans-serif; background: rgb(33, 39, 40); border-radius: 6px; max-height: 85px; overflow-y: auto; font-size: 11px; text-wrap-mode: wrap; word-break: break-all; border: 1px solid rgb(51, 51, 51); color: rgb(247, 247, 247);\"><div style=\"color: rgb(240, 242, 248); font-size: 13px; white-space-collapse: collapse; background-color: rgba(0, 0, 0, 0.25);\">Descrição do jutso.</div></pre></div></div></div><div><div><br></div></div>",
+          "className": "sub-campo classe-conteudo"
+        },
+        {
+          "html": "<i>Páginas Referentes: 91</i>",
+          "className": "sub-campo"
+        }
+      ]
+    },
+    "data_t_17826306591500.8204641772059355": {
+      "top": "0px",
+      "left": "520px",
+      "width": 221,
+      "height": 119,
+      "type": "text",
+      "title": "INICIATIVA",
+      "campos": [
+        {
+          "html": "<i>nota:</i><div><i>Agilidade +1D6 (por rodada)</i><div><br></div></div>",
+          "className": "sub-campo"
+        }
+      ]
+    },
+    "data_t_17826306591500.6054474945639824": {
+      "top": "1000px",
+      "left": "0px",
+      "width": 304,
+      "height": 1513,
+      "type": "text",
+      "title": "PERÍCIAS",
+      "campos": [
+        {
+          "html": "<div><span style=\"font-size: 15px;\">COMBATE/NINJA</span></div><div><span style=\"font-size: 15px;\"><br></span></div><div><table style=\"color: rgb(255, 255, 255); width: 308px; max-width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 12px;\"><thead><tr style=\"background: rgb(45, 45, 45); color: rgb(79, 195, 247);\"><th style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; text-align: left;\">Perícias</th><th style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; text-align: left;\">Valor</th></tr></thead><tbody><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Ninjutsu (ESP)</span><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">.:</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><div style=\"color: rgb(240, 242, 248); font-size: 13px;\"><span style=\"font-size: 15px;\">05%</span></div></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Taijutsu (AGL/FOR)</span><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">.:</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">05%</span></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Genjutsu (INT)</span><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">.:</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">05%</span></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Kenjutsu (AGL/FOR)</span><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">.:</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><div style=\"color: rgb(240, 242, 248); font-size: 13px;\"><span style=\"font-size: 15px;\">05%</span></div></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Bloqueio (AGL)</span><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">.:</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">05%</span></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Controle Chakra</span><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">(ESP):</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><div style=\"color: rgb(240, 242, 248); font-size: 13px;\"><span style=\"font-size: 15px;\">05%</span></div></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Liberação Chakra (ESP).:</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><div style=\"color: rgb(240, 242, 248); font-size: 13px;\"><span style=\"font-size: 15px;\">05%</span></div></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Esquiva (AGL)</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">05%</span></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Furtividade (AGL)</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">05%</span></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Arremesso (AGL)</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">05%</span></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Escapismo (AGL)</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><div style=\"color: rgb(240, 242, 248); font-size: 13px;\"><span style=\"font-size: 15px;\">05%</span></div></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Procurar (INT)</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><div style=\"color: rgb(240, 242, 248); font-size: 13px;\"><span style=\"font-size: 15px;\">05%</span></div></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Sobrevivência (INT).</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">05%</span></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Filosofia (INT)</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">05%</span></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Armadilhas (INT/AGL)</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><div style=\"color: rgb(240, 242, 248); font-size: 13px;\"><span style=\"font-size: 15px;\">05%</span></div></td></tr></tbody></table></div><div><br></div><div><span style=\"font-size: 15px;\">[UTILITÁRIAS/SOCIAIS]</span></div><div><span style=\"font-size: 15px;\"><br></span></div><div><table style=\"color: rgb(255, 255, 255); width: 308px; max-width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 12px;\"><thead><tr style=\"background: rgb(45, 45, 45); color: rgb(79, 195, 247);\"><th style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; text-align: left;\">Perícias</th><th style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; text-align: left;\">Valor</th></tr></thead><tbody><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Acrobacia (AGL)</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">00%</span></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Esportes (FOR)</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><div style=\"color: rgb(240, 242, 248); font-size: 13px;\"><span style=\"font-size: 15px;\">00%</span></div></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Atuação (CAR)</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">00%</span></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Lábia (CAR)</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">00%</span></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Intimidação (CAR)</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">00%</span></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Diplomacia (CAR)</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">00%</span></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Empatia (INT)</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">00%</span></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Sedução (CAR)</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">00%</span></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Treinamento (INT)</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">00%</span></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Acadêmicos (INT)</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">00%</span></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Ofícios (INT)</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">00%</span></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Profissão (INT)</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">00%</span></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Exp. Artística (INT)</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">00%</span></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Venefício (INT)</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">00%</span></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Análise (INT)</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">00%</span></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Pesquisa (INT)</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">00%</span></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Medicina (INT)</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">00%</span></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Punga (AGL)</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">00%</span></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Treino Animal (INT)</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">00%</span></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Lib. Chak. Nat. (ESP).</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">00%</span></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Lib. Chak. Mal. (ESP)</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><div style=\"color: rgb(240, 242, 248); font-size: 13px;\"><span style=\"font-size: 15px;\">00%</span></div></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Meditação (ESP)</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">00%</span></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 15px; background-color: rgba(0, 0, 0, 0.25);\">Explosivos (INT)</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><div style=\"color: rgb(240, 242, 248); font-size: 13px;\"><span style=\"font-size: 15px;\">00%</span></div></td></tr></tbody></table></div><div><br></div>",
+          "className": "sub-campo classe-conteudo"
+        }
+      ]
+    },
+    "data_t_17826306591500.6293750753689722": {
+      "top": "380px",
+      "left": "1300px",
+      "width": 256,
+      "height": 808,
+      "type": "text",
+      "title": "BACKGROUND",
+      "campos": [
+        {
+          "html": "<div>✥ HISTÓRICO:&nbsp;</div><div><br></div><div>Criar</div><div><br></div><div><div>✥ CAMPANHA: PRELÚDIO DA GUERRA</div><div>----------------------------------</div><div>• Estilo: Anime Total.</div><div>• Vila Inicial: Konoha.</div><div>• Tier: T3.</div><div><br></div><div>----------------------------------</div><div>✥ CONTEXTO LORE</div><div>Ano 5 da Fundação de Konoha.</div><div>A era dos clãs em guerra terminou</div><div>e o modelo de Vila Oculta é um</div><div>sucesso absoluto.&nbsp;</div><div><br></div><div>A centralização política exige a</div><div>eleição do primeiro Hokage. Os</div><div>Hyuga atuam como a nobreza e força</div><div>diplomática da vila.</div><div><br></div><div>----------------------------------</div><div>✥ SUA MISSÃO</div><div>Vocês compõem a primeira turma da</div><div>Academia Ninja. A eficácia dos</div><div>times é uma incógnita.</div><div><br></div><div>Seu desempenho nas missões de</div><div>campo impactará diretamente a</div><div>pontuação dos candidatos ao posto</div><div>de Hokage.</div><div><br></div><div>----------------------------------</div><div>✥ O PERIGO</div><div>Viajantes do tempo ocultos ameaçam</div><div>o cânone da história. O roteiro</div><div>original é incerto: a paz é apenas</div><div>o prelúdio da Primeira Grande</div><div>Guerra Shinobi. Junte-se a Madara</div><div>e mude o destino de Konoha.</div></div><div><br></div>",
+          "className": "sub-campo"
+        }
+      ]
+    },
+    "data_t_17826306591500.46842367704957644": {
+      "top": "1220px",
+      "left": "1300px",
+      "width": 241,
+      "height": 226,
+      "type": "text",
+      "title": "CRIAÇÃO DE DIRETRIZES",
+      "campos": [
+        {
+          "html": "<div>✥ ANÁLISE DE VIABILIDADE</div><div>--------------------------------</div><div><br></div><div>Sua ficha integra mecânicas e lore para consolidar suas ações.</div><div><br></div><div>PONTO DE ATENÇÃO:</div><div><br></div><div><br></div>",
+          "className": "sub-campo"
+        }
+      ]
+    },
+    "data_t_17826306591500.9889151938285561": {
+      "top": "0px",
+      "left": "0px",
+      "width": 221,
+      "height": 102,
+      "type": "text",
+      "title": "PV",
+      "campos": [
+        {
+          "html": "<i>nota:6+Vigor*2</i><div><br></div>",
+          "className": "sub-campo"
+        }
+      ]
+    },
+    "data_t_17826306591500.9334699566370421": {
+      "top": "0px",
+      "left": "1300px",
+      "width": 257,
+      "height": 330,
+      "type": "text",
+      "title": "IDADENTIDADE",
+      "campos": [
+        {
+          "html": "<div>Jogador:&nbsp;</div><div>Idade: 12</div><div>Nível: 1</div><div>Rank: E</div><div>Vila:&nbsp;</div><div>Tier: T3</div><div>Elemento:&nbsp;</div><div><br></div><div>Mestre/Sensei:&nbsp;</div><div><br></div><div><div>Resumo: .</div></div><div><br></div><div><br></div><div><br></div><div><br></div>",
+          "className": "sub-campo"
+        }
+      ]
+    },
+    "data_t_17826306591500.7072068638816655": {
+      "top": "0px",
+      "left": "260px",
+      "width": 226,
+      "height": 102,
+      "type": "text",
+      "title": "CHAKRA",
+      "campos": [
+        {
+          "html": "<i>nota:6+Espírito*2</i><div><br></div>",
+          "className": "sub-campo"
+        }
+      ]
+    },
+    "data_t_17826306591500.4967823974834483": {
+      "top": "720px",
+      "left": "0px",
+      "width": 276,
+      "height": 245,
+      "type": "text",
+      "title": "DEFEITOS",
+      "campos": [
+        {
+          "html": "<div><div>✥<b>&nbsp;DEFEITO&nbsp;[1 - 6 pontos]</b></div><div>Pontos Gastos:0</div><div><br></div><div><pre style=\"margin-bottom: 8px; padding: 8px; font-family: sans-serif; background: rgb(33, 39, 40); border-radius: 6px; max-height: 85px; overflow-y: auto; font-size: 11px; text-wrap-mode: wrap; word-break: break-all; border: 1px solid rgb(51, 51, 51); color: rgb(247, 247, 247);\"><div style=\"color: rgb(240, 242, 248); font-size: 13px; white-space-collapse: collapse; background-color: rgba(0, 0, 0, 0.25);\">Descrição do Defeito</div></pre></div></div><div><br></div>",
+          "className": "sub-campo classe-conteudo"
+        },
+        {
+          "html": "<i>Páginas Referentes:&nbsp;Qualidades</i><div><i>&nbsp;e Defeitos 24</i></div>",
+          "className": "sub-campo"
+        }
+      ]
+    },
+    "data_t_17826306591500.7757463872387741": {
+      "top": "480px",
+      "left": "0px",
+      "width": 275,
+      "height": 214,
+      "type": "text",
+      "title": "QUALIDADES",
+      "campos": [
+        {
+          "html": "<div><div>✥<b> QUALIDADE [1 - 6 pontos]</b></div><div>Pontos Gastos:0</div><div><br></div><div><pre style=\"background: rgb(33, 39, 40); padding: 8px; border-radius: 6px; max-height: 85px; overflow-y: auto; font-family: sans-serif; font-size: 11px; text-wrap-mode: wrap; word-break: break-all; border: 1px solid rgb(51, 51, 51); margin-bottom: 8px; color: rgb(247, 247, 247);\"><div style=\"color: rgb(240, 242, 248); font-size: 13px; white-space-collapse: collapse; background-color: rgba(0, 0, 0, 0.25);\">Descrição da qualidade</div></pre></div></div><div><br></div>",
+          "className": "sub-campo classe-conteudo"
+        }
+      ]
+    },
+    "data_t_17826306591500.6771482587969275": {
+      "top": "140px",
+      "left": "0px",
+      "width": 226,
+      "height": 301,
+      "type": "text",
+      "title": "ATRIBUTOS",
+      "campos": [
+        {
+          "html": "<div style=\"\"><div style=\"\"><div><table style=\"color: rgb(255, 255, 255); width: 308px; max-width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 12px;\"><thead><tr style=\"background: rgb(45, 45, 45); color: rgb(79, 195, 247);\"><th style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; text-align: left;\">Atributo</th><th style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; text-align: left;\">Valor</th></tr></thead><tbody><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><b style=\"color: rgb(240, 242, 248); font-size: 13px; background-color: rgba(0, 0, 0, 0.25);\">✥ Vigor:</b></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px;\"><font color=\"#f0f2f8\"><span style=\"font-size: 13px; background-color: rgba(0, 0, 0, 0.25);\">00</span></font></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><b style=\"color: rgb(240, 242, 248); font-size: 13px; background-color: rgba(0, 0, 0, 0.25);\">✥ Agilidade:</b></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 13px; background-color: rgba(0, 0, 0, 0.25);\">00</span></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><b style=\"color: rgb(240, 242, 248); font-size: 13px; background-color: rgba(0, 0, 0, 0.25);\">✥ Inteligência:</b></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 13px; background-color: rgba(0, 0, 0, 0.25);\">00</span></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><b style=\"color: rgb(240, 242, 248); font-size: 13px; background-color: rgba(0, 0, 0, 0.25);\">✥ Espírito:</b><span style=\"color: rgb(240, 242, 248); font-size: 13px; background-color: rgba(0, 0, 0, 0.25);\">&nbsp;</span></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 13px; background-color: rgba(0, 0, 0, 0.25);\">00</span></td></tr><tr><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><b style=\"color: rgb(240, 242, 248); font-size: 13px; background-color: rgba(0, 0, 0, 0.25);\">✥ Carisma:&nbsp;</b></td><td style=\"border: 1px solid rgb(68, 68, 68); padding: 6px; background-color: rgb(30, 30, 30);\"><span style=\"color: rgb(240, 242, 248); font-size: 13px; background-color: rgba(0, 0, 0, 0.25);\">00</span></td></tr></tbody></table></div><div><br></div><div>modificadores:</div></div></div>",
+          "className": "sub-campo"
+        }
+      ]
+    },
+    "data_img_1787115270735": {
+      "top": "180px",
+      "left": "320px",
+      "width": 687,
+      "height": 1054,
+      "type": "image",
+      "title": "Imagem do Personagem",
+      "url": "https://img.lightshot.app/cYslKIW-S0u36F_33n-x6A.jpeg"
+    },
+    "data_c_1782798523805": {
+      "top": "0px",
+      "left": "1040px",
+      "width": 232,
+      "height": 385,
+      "type": "chart",
+      "title": "STATUS SHINOBI",
+      "inputs": {
+        "taijutsu": 0,
+        "ninjutsu": 0,
+        "genjutsu": 0,
+        "vigor": 0,
+        "inteligencia": 0,
+        "chakraMax": 0
+      }
+    },
+    "data_t_17826306591500.19668062007473497": {
+      "top": "700px",
+      "left": "1040px",
+      "width": 238,
+      "height": 442,
+      "type": "text",
+      "title": "Combo de combate utilizado",
+      "campos": [
+        {
+          "html": "<div><span style=\"font-size: 14px;\"><b>✥ DOUTRINA</b></span></div><div><div style=\"font-size: 14px;\"><span style=\"font-size: medium;\">Pontos Gastos: 0</span></div></div><div style=\"font-size: 14px;\"><span style=\"font-size: medium;\"><br></span></div><div style=\"font-size: 14px;\"><div><pre style=\"margin-bottom: 8px; padding: 8px; font-family: sans-serif; background: rgb(33, 39, 40); border-radius: 6px; max-height: 85px; overflow-y: auto; font-size: 11px; text-wrap-mode: wrap; word-break: break-all; border: 1px solid rgb(51, 51, 51); color: rgb(247, 247, 247);\"><div style=\"color: rgb(240, 242, 248); font-size: 13px; white-space-collapse: collapse; background-color: rgba(0, 0, 0, 0.25);\">Descrição do Doutrina.</div></pre></div><div><br style=\"font-size: 13px;\"></div></div><div style=\"font-size: 14px;\"><div style=\"font-size: 13px;\"><div><div>✥&nbsp;<b>JUTSO</b></div><div>Ninjutsu Rank&nbsp;</div><div>fonte de onde aprendeu o jutso</div><div><br></div><div><pre style=\"margin-bottom: 8px; padding: 8px; font-family: sans-serif; background: rgb(33, 39, 40); border-radius: 6px; max-height: 85px; overflow-y: auto; font-size: 11px; text-wrap-mode: wrap; word-break: break-all; border: 1px solid rgb(51, 51, 51); color: rgb(247, 247, 247);\"><div style=\"color: rgb(240, 242, 248); font-size: 13px; white-space-collapse: collapse; background-color: rgba(0, 0, 0, 0.25);\">Descrição do jutso.</div></pre></div></div><div><br></div><div><div><div>✥ <b>MANOBRA MUNDANA</b></div><div><br></div><div><br></div><div><pre style=\"margin-bottom: 8px; padding: 8px; font-family: sans-serif; background: rgb(33, 39, 40); border-radius: 6px; max-height: 85px; overflow-y: auto; font-size: 11px; text-wrap-mode: wrap; word-break: break-all; border: 1px solid rgb(51, 51, 51); color: rgb(247, 247, 247);\"><div style=\"color: rgb(240, 242, 248); font-size: 13px; white-space-collapse: collapse; background-color: rgba(0, 0, 0, 0.25);\">Descrição da manobra.</div></pre></div></div><div><br></div></div></div></div>",
+          "className": "sub-campo"
+        }
+      ]
+    },
+    "data_t_17826306591500.07366483821161873": {
+      "top": "1280px",
+      "left": "680px",
+      "width": 276,
+      "height": 275,
+      "type": "text",
+      "title": "DOUTRINAS",
+      "campos": [
+        {
+          "html": "<div style=\"\"><div style=\"font-size: 13px;\"><span style=\"font-size: 14px;\"><b>✥ DOUTRINA</b></span></div><div style=\"\"><div style=\"font-size: 14px;\"><span style=\"font-size: medium;\">Pontos Gastos: 0</span></div><div style=\"font-size: 14px;\"><span style=\"font-size: medium;\"><br></span></div><div style=\"\"><pre style=\"background: rgb(33, 39, 40); padding: 8px; border-radius: 6px; max-height: 85px; overflow-y: auto; font-family: sans-serif; text-wrap-mode: wrap; word-break: break-all; border: 1px solid rgb(51, 51, 51); margin-bottom: 8px; color: rgb(247, 247, 247);\"><div style=\"color: rgb(240, 242, 248); white-space-collapse: collapse; background-color: rgba(0, 0, 0, 0.25);\"><span style=\"font-size: 14px;\">Descrição da Doutrina,</span></div></pre></div></div></div>",
+          "className": "sub-campo"
+        }
+      ]
+    },
+    "data_t_17826306591500.9999631621629972": {
+      "top": "1180px",
+      "left": "1040px",
+      "width": 237,
+      "height": 308,
+      "type": "text",
+      "title": "INVENTÁRIO",
+      "campos": [
+        {
+          "html": "<i>nota: inicial 6 + Recurso</i><div><i>Total: 18+6 = 24</i></div><div><i><br></i></div><div><b style=\"font-size: 14px;\">✥ ITEM</b></div><div><div><div style=\"font-size: 14px;\"><span style=\"font-size: medium;\">valor do item: 0</span></div></div><div style=\"font-size: 14px;\"><span style=\"font-size: medium;\"><br></span></div><div style=\"font-size: 14px;\"><div><pre style=\"margin-bottom: 8px; padding: 8px; font-family: sans-serif; background: rgb(33, 39, 40); border-radius: 6px; max-height: 85px; overflow-y: auto; font-size: 11px; text-wrap-mode: wrap; word-break: break-all; border: 1px solid rgb(51, 51, 51); color: rgb(247, 247, 247);\"><div style=\"color: rgb(240, 242, 248); font-size: 13px; white-space-collapse: collapse; background-color: rgba(0, 0, 0, 0.25);\">Descrição do item.</div><div style=\"color: rgb(240, 242, 248); font-size: 13px; white-space-collapse: collapse; background-color: rgba(0, 0, 0, 0.25);\">Regras e Observações.</div></pre></div><div><br></div></div></div>",
+          "className": "sub-campo classe-conteudo"
+        },
+        {
+          "html": "<i>Páginas Referentes: 101</i>",
+          "className": "sub-campo"
+        }
+      ]
+    },
+    "data_t_17826306591500.572560816435824": {
+      "top": "1280px",
+      "left": "380px",
+      "width": 229,
+      "height": 222,
+      "type": "text",
+      "title": "APRIMORAMENTOS",
+      "campos": [
+        {
+          "html": "<div><b>✥ APRIMORAMENTO</b></div><div>beneficio em resumo</div><div><br></div><div><br></div><div><pre style=\"background: rgb(33, 39, 40); padding: 8px; border-radius: 6px; max-height: 85px; overflow-y: auto; font-family: sans-serif; font-size: 11px; text-wrap-mode: wrap; word-break: break-all; border: 1px solid rgb(51, 51, 51); margin-bottom: 8px; color: rgb(247, 247, 247);\"><div style=\"color: rgb(240, 242, 248); font-size: 13px; white-space-collapse: collapse;\">Descrição do aprimoramento.</div></pre></div>",
+          "className": "sub-campo"
+        },
+        {
+          "html": "<i>Páginas Referentes: 70</i>",
+          "className": "sub-campo"
+        }
+      ]
+    }
+  }
+}
