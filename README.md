@@ -28,6 +28,7 @@
 <!-- QUICK NAVIGATION -->
 <p align="center">
   <a href="#-visão-geral--filosofia">Visão Geral</a> •
+  <a href="#-razões-para-ser-como-é">Razões para ser como é</a> •
   <a href="#-arquitetura-do-ecossistema">Arquitetura</a> •
   <a href="#-motores-e-fundamentos-matemáticos">Engenharia Matemática</a> •
   <a href="#-matriz-de-módulos-e-plugins">Módulos</a> •
@@ -59,6 +60,41 @@ O **Canvas Studio** é uma estação de trabalho *single-page* de alto desempenh
 │  - RAF Batching      │  - Dynamic Plugin Sandbox   │  - Resilient JSON Backups   │
 └──────────────────────┴─────────────────────────────┴─────────────────────────────┘
 ```
+
+---
+
+## 💡 Razões para ser como é
+
+<details>
+<summary><b>🔍 Clique para expandir: Por que o Canvas Studio não possui backend? (A filosofia do Papel e Caneta Digital)</b></summary>
+
+<br>
+
+### 📜 A Filosofia do "Papel e Caneta Digital" vs. "VTT Centralizado"
+Uma questão comum de engenharia de software é: *"Por que não criar um backend com banco de dados central e WebSockets para sincronizar a tela de todos os jogadores em tempo real?"*
+
+A resposta reside na **essência do fluxo clássico de uma sessão de RPG de mesa**:
+1. **Autonomia e Privacidade:** No RPG real (presencial ou no Discord), a dinâmica é descentralizada. Cada jogador tem sua própria prancheta, anotações secretas, táticas de combate e controle de inventário. Quando o Mestre determina que o personagem sofreu dano ou gastou Chakra, ele **não** pega fisicamente a borracha e apaga a folha do jogador — o Mestre dita a narrativa e o próprio jogador atualiza o seu registro.
+2. **Prancheta Pessoal vs. Tabuleiro Central:** O Canvas Studio não tem a pretensão de ser um tabuleiro virtual pesado (estilo *Roll20*), mas sim a **evolução digital da pasta de fichas e anotações pessoais do jogador** (seguindo a mesma filosofia *Local-First* de ferramentas consagradas como *Obsidian* e *Excalidraw*).
+
+---
+
+### 🚫 Por que um Backend seria *Over-Engineering* neste Contexto?
+
+| Com Backend (*Over-Engineering*) | Sem Backend / Local-First (*Canvas Studio*) |
+| :--- | :--- |
+| **Fricção de Entrada:** "Crie sua conta, confirme o e-mail, digite a senha..." | **Zero Fricção:** Abriu o link no navegador e o estúdio está pronto para jogar. |
+| **Dependência de Conexão:** Se o Wi-Fi da sessão oscilar, a ficha trava ou não salva. | **100% Offline:** Funciona perfeitamente sem internet durante sessões presenciais. |
+| **Privacidade Comprometida:** Anotações e segredos do jogador guardados em servidores alheios. | **Soberania Total:** Todos os dados ficam restritos ao hardware do próprio usuário. |
+| **Latência de Rede:** Espera de round-trips HTTP/WebSocket para persistir ações. | **Latência Zero (0ms):** Arraste, cálculos trigonométricos e persistência imediatos na RAM/Disco. |
+| **Custos e Manutenção:** Servidores, bancos de dados, certificados e DevOps contínuos. | **Custo Zero Vitalício:** Hospedagem estática gratuita e zero preocupação com infraestrutura. |
+
+---
+
+### 📦 Como funciona o Compartilhamento de Fichas?
+Exatamente como no RPG tradicional: quando o jogador precisa entregar sua ficha ao Mestre para revisão, ele simplesmente **exporta o arquivo `.json`** e envia (ou gera uma imagem/cópia) — o equivalente moderno a tirar um xerox da ficha de papel.
+
+</details>
 
 ---
 
