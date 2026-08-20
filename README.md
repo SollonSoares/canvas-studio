@@ -310,7 +310,7 @@ O ecossistema é modularizado em componentes independentes que implementam a cla
 | **Event Bus** | [`EventBus.js`](file:///e:/Downloads/canvas-studio/src/core/EventBus.js) | Barramento Pub/Sub com barreira de erro isolada (`try/catch`). | Todos | Memória |
 | **Icon System** | [`IconHelper.js`](file:///e:/Downloads/canvas-studio/src/core/IconHelper.js) | Biblioteca de vetores SVG e gerador de templates de botão. | — | — |
 | **Chart Plugin** | [`ChartModule.js`](file:///e:/Downloads/canvas-studio/src/modules/chart/ChartModule.js) | Radar trigonométrico 2D e cálculo de médias shinobi. | `search:query` | `LocalStorage` |
-| **Text Plugin** | [`TextModule.js`](file:///e:/Downloads/canvas-studio/src/modules/text/TextModule.js) | Fichas de anotação com barra contextual WYSIWYG. | `search:query` | `LocalStorage` |
+| **Text Plugin** | [`TextModule.js`](file:///e:/Downloads/canvas-studio/src/modules/text/TextModule.js) | Fichas de anotação com barra contextual WYSIWYG, inserção de Tabelas, Div Pre, Div Style e seletores de cor de fonte/background. | `search:query` | `LocalStorage` |
 | **Image Plugin** | [`ImageModule.js`](file:///e:/Downloads/canvas-studio/src/modules/image/ImageModule.js) | Inserção de ilustrações externas com fallback em `onerror`. | — | `LocalStorage` + `IDB` |
 | **Resize Engine** | [`ResizeModule.js`](file:///e:/Downloads/canvas-studio/src/modules/resize/ResizeModule.js) | Injeção de alça de redimensionamento via `MutationObserver` e `rAF`. | `canvas:block-created` | `LocalStorage` |
 | **Auto Organizer** | [`OrganizerModule.js`](file:///e:/Downloads/canvas-studio/src/modules/organizer/OrganizerModule.js) | Auto-alinhamento em grade e ordenação alfabética. | — | `LocalStorage` |
