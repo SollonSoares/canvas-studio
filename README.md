@@ -28,14 +28,15 @@
 <!-- QUICK NAVIGATION -->
 <p align="center">
   <a href="#-visão-geral--filosofia">Visão Geral</a> •
-  <a href="#-razões-para-ser-como-é">Razões para ser como é</a> •
+  <a href="#-razões-para-ser-como-é">Razões de Design</a> •
   <a href="#-arquitetura-do-ecossistema">Arquitetura</a> •
-  <a href="#-motores-e-fundamentos-matemáticos">Engenharia Matemática</a> •
+  <a href="#-motores-e-fundamentos-matemáticos">Matemática & Motores</a> •
   <a href="#-matriz-de-módulos-e-plugins">Módulos</a> •
   <a href="#-design-system--tokens-visuais">Design System</a> •
   <a href="#-extensão-e-sdk-de-plugins">SDK de Plugins</a> •
   <a href="#-qualidade-e-suíte-de-testes">Testes E2E</a> •
-  <a href="#-métricas-e-análise-de-complexidade">Complexidade</a>
+  <a href="#-métricas-e-análise-de-complexidade">Métricas</a> •
+  <a href="#-como-executar-localmente">Como Executar</a>
 </p>
 
 </div>
@@ -102,7 +103,12 @@ Exatamente como no RPG tradicional: quando o jogador precisa entregar sua ficha 
 
 O sistema opera sob o padrão **Micro-Kernel com Barramento de Eventos Desacoplado (Pub/Sub)**, onde o núcleo (`src/core/`) fornece serviços de infraestrutura e os módulos (`src/modules/`) funcionam como plugins isolados com ciclo de vida estrito.
 
-### 📊 Diagrama Arquitetural de Alto Nível
+<details>
+<summary><b>📊 Visualizar Diagramas Arquiteturais (Mermaid) e Ciclo de Eventos</b></summary>
+
+<br>
+
+### Diagrama Arquitetural de Alto Nível
 
 ```mermaid
 graph TB
@@ -142,7 +148,6 @@ graph TB
         IDB[("IndexedDB (CanvasMediaDB)<br/><i>ObjectStore 'images' (Base64/Blobs)</i>")]:::storageStyle
     end
 
-    %% Relações
     App -->|Instancia & Supervisiona| PLUGINS
     PLUGINS -->|Herança de Ciclo de Vida| BaseMod
     PLUGINS -.->|Emitem & Escutam| Bus
@@ -157,7 +162,7 @@ graph TB
 
 ---
 
-## ⚙️ Ciclo de Vida e Fluxo de Eventos
+### Ciclo de Vida e Fluxo de Eventos
 
 A comunicação entre subsistemas nunca ocorre por referência direta entre instâncias, garantindo **baixo acoplamento** e **alta coesão**:
 
@@ -185,9 +190,18 @@ sequenceDiagram
     Module->>Store: Persiste coordenadas (data_{uid}) no LocalStorage
 ```
 
+</details>
+
 ---
 
 ## 🔬 Motores e Fundamentos Matemáticos
+
+O Canvas Studio incorpora algoritmos geométricos e trigonométricos puros para garantir precisão e desempenho a 60fps.
+
+<details>
+<summary><b>📐 Visualizar Fórmulas Trigonométricas, Normalização e Matemática do Snap-to-Grid</b></summary>
+
+<br>
 
 ### 1. Motor de Projeção Trigonométrica Polar para Cartesiana (`ChartModule.js`)
 O radar de atributos shinobi renderiza 6 eixos simétricos distribuídos radialmente a cada $\frac{\pi}{3}$ radianos ($60^\circ$), iniciando no topo ($-\frac{\pi}{2}$):
@@ -249,9 +263,18 @@ Varre todos os nós ativos, executa ordenação alfabética natural com suporte 
 2. **Distribuição Espacial**: $\mathcal{O}(N)$ calculando quebra de linha quando $(X_{\text{atual}} + W_i) > (W_{\text{canvas}} - 40)$.
 3. **Animação Concorrente**: Injeta `transition: top 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), left 0.35s ...` e limpa as regras após o término para restaurar o controle manual instantâneo.
 
+</details>
+
 ---
 
 ## 🗂️ Matriz de Módulos e Plugins
+
+O ecossistema é modularizado em componentes independentes que implementam a classe abstrata `BaseModule`.
+
+<details>
+<summary><b>🧩 Visualizar Tabela Completa de Módulos, Responsabilidades e Eventos</b></summary>
+
+<br>
 
 | Módulo | Arquivo | Responsabilidade Primária | Eventos Emitidos / Escutados | Persistência |
 | :--- | :--- | :--- | :--- | :--- |
@@ -268,11 +291,18 @@ Varre todos os nós ativos, executa ordenação alfabética natural com suporte 
 | **Portability** | [`PortabilityModule.js`](file:///e:/Downloads/canvas-studio/src/modules/portability/PortabilityModule.js) | Motor de exportação/importação com suporte polimórfico de schemas. | `canvas:reload-request` | `LocalStorage` |
 | **Dynamic Plugin** | [`DynamicScriptModule`](file:///e:/Downloads/canvas-studio/src/core/App.js#L30-L93) | Adaptador para carregar scripts `.js` em runtime com rastreamento no DOM. | — | `LocalStorage` |
 
+</details>
+
 ---
 
 ## 🎨 Design System & Tokens Visuais
 
-O visual é orientado aos padrões do **macOS (Apple Human Interface Guidelines)** com estética *Glassmorphic*:
+O visual é orientado aos padrões do **macOS (Apple Human Interface Guidelines)** com estética *Glassmorphic*.
+
+<details>
+<summary><b>🎨 Visualizar Tabela de Tokens CSS (Dark/Light) e Efeitos Glassmorphism</b></summary>
+
+<br>
 
 <div align="center">
 
@@ -302,11 +332,18 @@ O visual é orientado aos padrões do **macOS (Apple Human Interface Guidelines)
 }
 ```
 
+</details>
+
 ---
 
 ## 🔌 Extensão e SDK de Plugins
 
 Você pode criar extensões customizadas e carregá-las no Canvas Studio diretamente pelo painel de configurações sem recarregar a página.
+
+<details>
+<summary><b>💻 Visualizar SDK e Código de Exemplo para Criar Plugins</b></summary>
+
+<br>
 
 ### Modelo Padrão de Plugin (`CustomModule.js`):
 
@@ -349,11 +386,18 @@ if (typeof CustomModule === 'undefined') {
 }
 ```
 
+</details>
+
 ---
 
 ## 🧪 Qualidade e Suíte de Testes
 
-A integridade do sistema é validada através de uma suíte de testes automatizados E2E baseada em **Robot Framework** e **Selenium**:
+A integridade do sistema é validada através de uma suíte de testes automatizados E2E baseada em **Robot Framework** e **Selenium**.
+
+<details>
+<summary><b>🤖 Visualizar Matriz de Casos de Teste (Robot Framework) e Comandos</b></summary>
+
+<br>
 
 ```
 tests/
@@ -375,9 +419,18 @@ pip install robotframework robotframework-seleniumlibrary
 robot -d tests/results tests/canvas_studio_tests.robot
 ```
 
+</details>
+
 ---
 
 ## 📊 Métricas e Análise de Complexidade
+
+Análise quantitativa do código e eficiência algorítmica de cada subsistema.
+
+<details>
+<summary><b>📈 Visualizar Métricas de Código (LOC) e Complexidade Algorítmica (Big-O)</b></summary>
+
+<br>
 
 ### Análise Quantitativa do Código:
 
@@ -399,6 +452,8 @@ TOTAL                    17          3.128                388         2.740
 * **Alinhamento Magnético (`CanvasManager`)**: $\mathcal{O}(1)$ tempo constante por evento de ponteiro.
 * **Auto-Organização (`OrganizerModule`)**: $\mathcal{O}(N \log N)$ para ordenação dos títulos e $\mathcal{O}(N)$ para posicionamento em grade.
 * **Redimensionamento Otimizado (`ResizeModule`)**: Throttling via `requestAnimationFrame`, limitando o redesenho à taxa nativa de quadros do monitor (60Hz/120Hz/144Hz) sem engasgos de CPU.
+
+</details>
 
 ---
 
@@ -432,7 +487,7 @@ Acesse em seu navegador: **`http://localhost:3000`**
 - [x] **v2.0.0**: Micro-Kernel, EventBus desacoplado, SDK de plugins e suite Robot Framework.
 - [ ] **v2.1.0**: Exportação visual completa do Canvas em PNG/PDF de alta resolução (2x/4x Retina).
 - [ ] **v2.2.0**: Conectores visuais (nós e arestas dinâmicas com Curvas de Bézier) para criação de árvores de jutsus e relacionamentos.
-- [ ] **v3.0.0**: Multiplayer colaborativo em tempo real via WebSockets / WebRTC com resolução de conflitos CRDT.
+- [ ] **v3.0.0**: Suporte a PWA instalável offline e widgets customizados de combate.
 
 ---
 
