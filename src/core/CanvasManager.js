@@ -60,8 +60,9 @@ export class CanvasManager {
         const currentScrollLeft = canvas ? canvas.scrollLeft : 0;
         const currentScrollTop = canvas ? canvas.scrollTop : 0;
 
-        const deltaX = (moveX - startMouseX) + (currentScrollLeft - startScrollLeft);
-        const deltaY = (moveY - startMouseY) + (currentScrollTop - startScrollTop);
+        const zoom = window.CanvasZoomLevel || 1.0;
+        const deltaX = ((moveX - startMouseX) + (currentScrollLeft - startScrollLeft)) / zoom;
+        const deltaY = ((moveY - startMouseY) + (currentScrollTop - startScrollTop)) / zoom;
 
         let novoX = startElementLeft + deltaX;
         let novoY = startElementTop + deltaY;

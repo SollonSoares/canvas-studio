@@ -504,6 +504,90 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 
+#canvas-stage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  min-width: 100%;
+  min-height: 100%;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+/* ===== WIDGET FLUTUANTE DE ZOOM (HUD) ===== */
+.zoom-floating-widget {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg-card-header);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid var(--border-default);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+  border-radius: 30px;
+  padding: 4px 6px;
+  z-index: 950;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform var(--transition-fast), opacity var(--transition-fast);
+}
+
+.zoom-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: background var(--transition-fast), transform var(--transition-fast), color var(--transition-fast);
+}
+
+.zoom-btn:hover {
+  background: var(--bg-button);
+  color: var(--accent);
+}
+
+.zoom-btn:active {
+  transform: scale(0.9);
+}
+
+.zoom-indicator-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 50px;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: 15px;
+  background: transparent;
+  border: none;
+  color: var(--text-main);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.zoom-indicator-btn:hover {
+  background: var(--bg-button);
+  color: var(--accent);
+}
+
+.zoom-divider {
+  width: 1px;
+  height: 18px;
+  background: var(--border-subtle);
+  margin: 0 2px;
+}
+
 /* ===== BLOCOS DO CANVAS (.draggable) ===== */
 .draggable {
   position: absolute;
@@ -895,5 +979,24 @@ body {
   /* Padding superior no Canvas para não cobrir o botão de menu */
   #canvas {
     padding-top: 10px;
+  }
+
+  /* Widget flutuante de Zoom no Mobile */
+  .zoom-floating-widget {
+    bottom: 16px;
+    right: 14px;
+    padding: 3px 6px;
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.5);
+  }
+
+  .zoom-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .zoom-indicator-btn {
+    min-width: 44px;
+    height: 34px;
+    font-size: 11px;
   }
 }

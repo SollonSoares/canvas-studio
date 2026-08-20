@@ -16,6 +16,7 @@ import ChartModule from '../modules/chart/ChartModule.js';
 import ResizeModule from '../modules/resize/ResizeModule.js';
 import OrganizerModule from '../modules/organizer/OrganizerModule.js';
 import ExportModule from '../modules/export/ExportModule.js';
+import ZoomModule from '../modules/zoom/ZoomModule.js';
 
 // Expõe os contratos e utilitários globais no escopo do navegador (window)
 window.BaseModule = BaseModule;
@@ -104,7 +105,8 @@ class AppEngine {
       text: true,
       image: true,
       chart: true,
-      resize: true
+      resize: true,
+      zoom: true
     };
 
     // Módulos customizados persistidos no localStorage
@@ -137,6 +139,10 @@ class AppEngine {
     const resizeInst = new ResizeModule();
     this.registry.set('resize', resizeInst);
     window.ResizeModule = resizeInst;
+
+    const zoomInst = new ZoomModule();
+    this.registry.set('zoom', zoomInst);
+    window.ZoomModule = zoomInst;
 
     this.registry.forEach((instance, key) => {
       if (this.modulesState[key] !== false) {

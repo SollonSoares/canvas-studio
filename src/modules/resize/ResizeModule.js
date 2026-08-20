@@ -78,8 +78,9 @@ export default class ResizeModule extends BaseModule {
             const moveX = ev.clientX !== undefined ? ev.clientX : (ev.touches && ev.touches[0] ? ev.touches[0].clientX : inicioX);
             const moveY = ev.clientY !== undefined ? ev.clientY : (ev.touches && ev.touches[0] ? ev.touches[0].clientY : inicioY);
 
-            const deltaX = moveX - inicioX;
-            const deltaY = moveY - inicioY;
+            const zoom = window.CanvasZoomLevel || 1.0;
+            const deltaX = (moveX - inicioX) / zoom;
+            const deltaY = (moveY - inicioY) / zoom;
 
             const novaLargura = Math.max(160, inicioLargura + deltaX);
             const novaAltura = Math.max(100, inicioAltura + deltaY);
