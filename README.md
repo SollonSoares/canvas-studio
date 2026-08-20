@@ -55,7 +55,7 @@ O **Canvas Studio** é uma estação de trabalho *single-page* de alto desempenh
 ┌──────────────────────────────────────────────────────────────────────────────────┐
 │                             CANVAS STUDIO ECOSYSTEM                              │
 ├──────────────────────┬─────────────────────────────┬─────────────────────────────┤
-│  ⚡ RENDER ENGINE     │  🔄 EVENT-DRIVEN CORE       │  💾 HYBRID STORAGE          │
+│  ⚡ RENDER ENGINE    │  🔄 EVENT-DRIVEN CORE       │  💾 HYBRID STORAGE          │
 │  - Snap-to-Grid (20px)│  - Decoupled EventBus       │  - LocalStorage (Metadata)  │
 │  - Trigonometric 2D  │  - BaseModule Lifecycle     │  - IndexedDB (Binary Blobs) │
 │  - RAF Batching      │  - Dynamic Plugin Sandbox   │  - Resilient JSON Backups   │
