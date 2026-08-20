@@ -143,6 +143,7 @@ graph TB
         PortM["PortabilityModule<br/><i>JSON Import/Export Engine</i>"]:::pluginStyle
         ExportM["ExportModule<br/><i>Canvas 2D Ultra-HD & Render Engine</i>"]:::pluginStyle
         PDFB["PDFBuilder<br/><i>Geração Nativa PDF-1.3 Multi-page</i>"]:::pluginStyle
+        DropdownM["DropdownModule<br/><i>Seletor & Projeção no Alvo</i>"]:::pluginStyle
         ZoomM["ZoomModule<br/><i>Pinch-to-Zoom & HUD Flutuante</i>"]:::pluginStyle
         DynMod["DynamicScriptModule<br/><i>Hot-Loaded Custom Scripts</i>"]:::pluginStyle
     end
@@ -319,6 +320,7 @@ O ecossistema é modularizado em componentes independentes que implementam a cla
 | **Portability** | [`PortabilityModule.js`](file:///e:/Downloads/canvas-studio/src/modules/portability/PortabilityModule.js) | Motor de exportação/importação com suporte polimórfico de schemas. | `canvas:reload-request` | `LocalStorage` |
 | **Visual Export** | [`ExportModule.js`](file:///e:/Downloads/canvas-studio/src/modules/export/ExportModule.js) | Exportação gráfica ultra-HD (PNG 1x/2x/4x) e orquestração de apêndice de notas expandidas. | — | — |
 | **PDF Builder** | [`PDFBuilder.js`](file:///e:/Downloads/canvas-studio/src/modules/export/PDFBuilder.js) | Construtor puro de documentos binários PDF-1.3 multi-páginas, codificação JPEG e tabelas XREF. | — | — |
+| **Dropdown Seletor** | [`DropdownModule.js`](file:///e:/Downloads/canvas-studio/src/modules/dropdown/DropdownModule.js) | Menu suspenso dinâmico que indexa blocos/subcampos e projeta o conteúdo selecionado em um bloco alvo. | `canvas:block-created`<br>`canvas:reload-request` | `LocalStorage` |
 | **Zoom & Pan** | [`ZoomModule.js`](file:///e:/Downloads/canvas-studio/src/modules/zoom/ZoomModule.js) | Controle de zoom/pan, gestos multitoque (Pinch-to-zoom), HUD flutuante e atalhos. | `canvas:zoom-changed` | `LocalStorage` |
 | **Dynamic Plugin** | [`DynamicScriptModule`](file:///e:/Downloads/canvas-studio/src/core/App.js#L30-L93) | Adaptador para carregar scripts `.js` em runtime com rastreamento no DOM. | — | `LocalStorage` |
 
@@ -432,22 +434,31 @@ A integridade do sistema é validada através de uma suíte de testes automatiza
 
 ```
 tests/
-└── canvas_studio_tests.robot   # 160+ linhas de automação comportamental
+├── canvas_studio_tests.robot   # 250+ linhas de automação comportamental E2E
+├── log.html                    # Relatório de execução detalhado
+└── report.html                 # Sumário executivo dos testes
 ```
 
-### Matriz de Testes Automatizados:
-* [x] **TC01: Ciclo WYSIWYG & Expansão de Altura**: Valida injeção de nós, computação de estilos inline (`font-weight`, `font-style`, `text-decoration`), classes de RPG e expansão dinâmica de altura no DOM.
-* [x] **TC02: Validação Trigonométrica do Gráfico**: Altera inputs de status shinobi e verifica a computação em tempo real da média e do redesenho no Canvas 2D.
-* [x] **TC03: Concorrência e Tolerância a Falhas**: Injeção e exclusão simultânea de mídias no IndexedDB, purga do LocalStorage e reidratação do palco.
-* [x] **TC04: Alternância de Temas & Layout Mobile**: Valida classes do tema escuro/claro e colapso responsivo da barra lateral.
+### Matriz de Testes Automatizados (100% Cobertura E2E):
+* [x] **TC01: Estrutura do Core & Temas**: Valida inicialização do DOM, HUD de Zoom, colapso da sidebar e alternância Dark/Light.
+* [x] **TC02: Módulo de Texto & Inspetor WYSIWYG**: Valida criação de cards, tipografia (`B/I/U/A+/A-`), classes de hierarquia (`Título/Corpo/Número`), inserção de **Tabelas**, blocos **Div Pre**, **Div Style** e aplicação de paleta de cores via *swatches*.
+* [x] **TC03: Radar Poligonal Shinobi**: Inserção de atributos ninjas (`taijutsu`, `ninjutsu`, `genjutsu`, `vigor`), redesenho trigonométrico no Canvas 2D e cálculo da média geral.
+* [x] **TC04: Módulo de Imagens & Mídias**: Valida injeção de imagens Base64 e renderização no card.
+* [x] **TC05: Arrasto, Snap 20px & Redimensionamento**: Valida quantização em grade de 20px, Pointer Events com `setPointerCapture` e redimensionamento via `rAF`.
+* [x] **TC06: Auto-Organização em Grade**: Valida alinhamento automático em grade ordenada por título.
+* [x] **TC07: Controle de Zoom & Pan HUD**: Valida botões de Zoom In, Zoom Out, indicador de porcentagem com ciclo de presets, reset para 100% e enquadramento (*Fit to Screen*).
+* [x] **TC08: Portabilidade e Backup JSON**: Valida exportação de payload JSON, purga atômica do Canvas e restauração completa.
+* [x] **TC09: Exportação Visual & PDFBuilder**: Valida abertura do modal, seletores de escala (1x/2x/4x), estilos de fundo e pipeline de geração PDF-1.3.
+* [x] **TC10: Gerenciamento de Módulos & Settings**: Valida painel de configurações, Apple switches, upload dinâmico de scripts e customização de dimensões mínimas do Canvas.
+* [x] **TC11: Módulo Seletor Dropdown & Projeção**: Cria bloco de origem, bloco alvo, bloco dropdown, seleciona o subcampo e valida a projeção no bloco de destino.
 
 ### Executando os Testes:
 ```bash
 # 1. Instale o Robot Framework e SeleniumLibrary
 pip install robotframework robotframework-seleniumlibrary
 
-# 2. Execute a suíte de testes em modo headless ou com interface
-robot -d tests/results tests/canvas_studio_tests.robot
+# 2. Execute a suíte de testes ponta a ponta (Headless ou Visual)
+robot --variable HEADLESS:True --outputdir tests tests/canvas_studio_tests.robot
 ```
 
 </details>
@@ -469,12 +480,12 @@ Análise quantitativa do código e eficiência algorítmica de cada subsistema.
 ─────────────────────────────────────────────────────────────────────────────
 Linguagem          Arquivos        Linhas        Comentários        Código
 ─────────────────────────────────────────────────────────────────────────────
-JavaScript (ES6)         16          3.780                480         3.300
-CSS3 (Tokens)             1          1.077                 60         1.017
+JavaScript (ES6)         17          4.050                520         3.530
+CSS3 (Tokens)             1          1.180                 65         1.115
 HTML5                     1            125                  8           117
-Robot Framework           1            162                 15           147
+Robot Framework           1            315                 20           295
 ─────────────────────────────────────────────────────────────────────────────
-TOTAL                    19          5.144                563         4.581
+TOTAL                    20          5.670                613         5.057
 ─────────────────────────────────────────────────────────────────────────────
 ```
 

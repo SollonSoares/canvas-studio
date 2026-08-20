@@ -1158,6 +1158,115 @@ body {
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
 }
 
+/* ===== BLOCAL SELETOR DROPDOWN (DROPDOWN MODULE) ===== */
+.dropdown-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 12px;
+  height: calc(100% - 36px);
+  box-sizing: border-box;
+}
+
+.dropdown-target-row,
+.dropdown-select-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dropdown-field-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dropdown-target-input {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+  color: var(--text-main);
+  font-size: 12px;
+  font-weight: 500;
+  outline: none;
+  font-family: inherit;
+  transition: all var(--transition-fast);
+  box-sizing: border-box;
+}
+
+.dropdown-target-input:focus {
+  border-color: var(--accent);
+  background: var(--bg-button);
+}
+
+.dropdown-select-apple {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+  color: var(--text-main);
+  font-size: 12px;
+  font-weight: 500;
+  outline: none;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-sizing: border-box;
+}
+
+.dropdown-select-apple:focus {
+  border-color: var(--accent);
+  background: var(--bg-button);
+}
+
+.dropdown-select-apple optgroup {
+  background: var(--bg-card);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 11px;
+}
+
+.dropdown-select-apple option {
+  background: var(--bg-input);
+  color: var(--text-main);
+  font-weight: normal;
+  font-size: 12px;
+  padding: 4px;
+}
+
+.dropdown-info-bar {
+  margin-top: auto;
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 4px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.dropdown-status-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  background: rgba(48, 209, 88, 0.15);
+  color: #30d158;
+  font-weight: 600;
+}
+
+.dropdown-status-badge.disconnected {
+  background: rgba(255, 69, 58, 0.15);
+  color: #ff453a;
+}
+
 /* ==========================================================================
    REGRAS RESPONSIVAS MOBILE & TABLETS (<= 768px)
    ========================================================================== */

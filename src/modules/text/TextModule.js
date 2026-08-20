@@ -397,8 +397,9 @@ export default class TextModule extends BaseModule {
     bus.on('search:query', (query) => {
       const blocos = document.querySelectorAll('.draggable[data-type="text"]');
       blocos.forEach(bloco => {
-        const texto = bloco.innerText.toLowerCase();
-        bloco.style.display = texto.includes(query) ? "block" : "none";
+        const titulo = (bloco.querySelector('.title-input')?.value || "").toLowerCase();
+        const texto = (bloco.innerText || "").toLowerCase();
+        bloco.style.display = (titulo.includes(query) || texto.includes(query)) ? "block" : "none";
       });
     });
   }

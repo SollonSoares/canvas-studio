@@ -1149,6 +1149,29 @@ export default class ExportModule extends BaseModule {
         ctx.clip();
         this.desenharConteudoTextoNoCanvas(ctx, listaCampos, bx + 12, by + 48, bw - 24, isLight);
         ctx.restore();
+      } else if (type === "dropdown") {
+        const targetInput = bloco.querySelector(".dropdown-target-input");
+        const targetVal = (targetInput ? targetInput.value : "").trim() || "Nenhum";
+        const select = bloco.querySelector(".dropdown-select-apple");
+        const selectedText = select && select.selectedIndex >= 0 ? select.options[select.selectedIndex].text : "Nenhuma seleção";
+
+        ctx.save();
+        ctx.fillStyle = isLight ? "#1d1d1f" : "#f0f2f8";
+        ctx.font = "bold 10px -apple-system, sans-serif";
+        ctx.fillText("BLOCO ALVO (DESTINO):", bx + 12, by + 52);
+
+        ctx.font = "11px -apple-system, sans-serif";
+        ctx.fillStyle = isLight ? "#0071e3" : "#0a84ff";
+        ctx.fillText(`🎯 ${targetVal}`, bx + 12, by + 68);
+
+        ctx.fillStyle = isLight ? "#1d1d1f" : "#f0f2f8";
+        ctx.font = "bold 10px -apple-system, sans-serif";
+        ctx.fillText("ITEM SELECIONADO:", bx + 12, by + 94);
+
+        ctx.font = "11px -apple-system, sans-serif";
+        ctx.fillStyle = isLight ? "#30d158" : "#30d158";
+        ctx.fillText(`🔽 ${selectedText}`, bx + 12, by + 110);
+        ctx.restore();
       } else {
         // Bloco Genérico / Plugin
         ctx.save();
