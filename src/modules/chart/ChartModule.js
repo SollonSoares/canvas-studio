@@ -180,13 +180,14 @@ export default class ChartModule extends BaseModule {
     }
 
     if (typeof dados === 'object') {
+      const fonte = dados.inputs || dados.status || dados;
       return {
-        taijutsu: Number(dados.taijutsu ?? dados.TAI ?? 0),
-        ninjutsu: Number(dados.ninjutsu ?? dados.NIN ?? 0),
-        genjutsu: Number(dados.genjutsu ?? dados.GEN ?? 0),
-        vigor: Number(dados.vigor ?? dados.VIG ?? 0),
-        inteligencia: Number(dados.inteligencia ?? dados.INT ?? 0),
-        chakraMax: Number(dados.chakraMax !== undefined ? dados.chakraMax : (dados.chakra !== undefined ? dados.chakra : (dados.CHK ?? 6)))
+        taijutsu: Number(fonte.taijutsu ?? fonte.TAI ?? 0),
+        ninjutsu: Number(fonte.ninjutsu ?? fonte.NIN ?? 0),
+        genjutsu: Number(fonte.genjutsu ?? fonte.GEN ?? 0),
+        vigor: Number(fonte.vigor ?? fonte.VIG ?? 0),
+        inteligencia: Number(fonte.inteligencia ?? fonte.INT ?? 0),
+        chakraMax: Number(fonte.chakraMax !== undefined ? fonte.chakraMax : (fonte.chakra !== undefined ? fonte.chakra : (fonte.CHK ?? 6)))
       };
     }
 
@@ -201,7 +202,7 @@ export default class ChartModule extends BaseModule {
   }
 
   criarBloco(id, style, dadosIniciais, tituloCustom = "STATUS SHINOBI") {
-    const canvasContainer = document.getElementById("canvas");
+    const canvasContainer = window.CanvasManager?.getContainer ? window.CanvasManager.getContainer() : (document.getElementById("canvas-stage") || document.getElementById("canvas"));
     if (!canvasContainer) return;
 
     const uid = id || "c_" + Date.now();
@@ -209,14 +210,21 @@ export default class ChartModule extends BaseModule {
     if (blocoAntigo) blocoAntigo.remove();
 
     const valores = this.normalizarDadosIniciais(dadosIniciais);
-    const titulo = tituloCustom || "STATUS SHINOBI";
+    const titulo = tituloCustom || dadosIniciais?.title || "STATUS SHINOBI";
 
     const div = document.createElement("div");
     div.className = "draggable";
     div.id = "block_" + uid;
     div.dataset.id = uid;
     div.dataset.type = "chart";
-    div.style.cssText += style || "top:100px; left:100px;";
+    
+    if (dadosIniciais?.width) div.style.width = typeof dadosIniciais.width === 'number' ? `${dadosIniciais.width}px` : dadosIniciais.width;
+    if (dadosIniciais?.height) div.style.height = typeof dadosIniciais.height === 'number' ? `${dadosIniciais.height}px` : dadosIniciais.height;
+    if (dadosIniciais?.top) div.style.top = typeof dadosIniciais.top === 'number' ? `${dadosIniciais.top}px` : dadosIniciais.top;
+    if (dadosIniciais?.left) div.style.left = typeof dadosIniciais.left === 'number' ? `${dadosIniciais.left}px` : dadosIniciais.left;
+    if (style && (!dadosIniciais?.top || !dadosIniciais?.left)) {
+      div.style.cssText += style;
+    }
 
     div.innerHTML = `
       <div class="drag-handle">

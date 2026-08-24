@@ -83,7 +83,7 @@ export default class DropdownModule extends BaseModule {
   }
 
   criarBloco(id, style, dadosIniciais) {
-    const canvasContainer = document.getElementById("canvas");
+    const canvasContainer = window.CanvasManager?.getContainer ? window.CanvasManager.getContainer() : (document.getElementById("canvas-stage") || document.getElementById("canvas"));
     if (!canvasContainer) return;
 
     const uid = id || "dd_" + Date.now();
@@ -98,9 +98,13 @@ export default class DropdownModule extends BaseModule {
     div.dataset.id = uid;
     div.dataset.type = "dropdown";
 
-    if (dados.width) div.style.width = dados.width + "px";
-    if (dados.height) div.style.height = dados.height + "px";
-    div.style.cssText += style || "top:120px; left:120px;";
+    if (dados.width) div.style.width = typeof dados.width === 'number' ? `${dados.width}px` : dados.width;
+    if (dados.height) div.style.height = typeof dados.height === 'number' ? `${dados.height}px` : dados.height;
+    if (dadosIniciais?.top) div.style.top = typeof dadosIniciais.top === 'number' ? `${dadosIniciais.top}px` : dadosIniciais.top;
+    if (dadosIniciais?.left) div.style.left = typeof dadosIniciais.left === 'number' ? `${dadosIniciais.left}px` : dadosIniciais.left;
+    if (style && (!dadosIniciais?.top || !dadosIniciais?.left)) {
+      div.style.cssText += style;
+    }
 
     div.innerHTML = `
       <div class="drag-handle">

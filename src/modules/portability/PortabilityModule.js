@@ -135,9 +135,17 @@ export default class PortabilityModule extends BaseModule {
           return;
         }
 
-        // Grava os blocos no localStorage
+        // Limpa blocos de dados anteriores do localStorage para carregar o backup fielmente
+        Object.keys(localStorage).forEach(chave => {
+          if (chave.startsWith("data_") && chave !== "data_brand_title" && chave !== "data_modules_state" && chave !== "app_modules_state" && chave !== "app_custom_modules" && chave !== "app_canvas_dimensions") {
+            localStorage.removeItem(chave);
+          }
+        });
+
+        // Grava os novos blocos no localStorage garantindo o prefixo data_
         Object.entries(blocosImportados).forEach(([chave, valor]) => {
-          localStorage.setItem(chave, typeof valor === 'string' ? valor : JSON.stringify(valor));
+          const key = chave.startsWith('data_') ? chave : `data_${chave}`;
+          localStorage.setItem(key, typeof valor === 'string' ? valor : JSON.stringify(valor));
         });
 
         if (brandTitle) {

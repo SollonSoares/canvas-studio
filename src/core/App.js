@@ -422,8 +422,19 @@ class AppEngine {
     });
 
     bus.on('canvas:reload-request', () => {
+      const stage = document.getElementById("canvas-stage");
       const canvas = document.getElementById("canvas");
-      if (canvas) canvas.innerHTML = "";
+      if (stage) {
+        stage.innerHTML = "";
+      } else if (canvas) {
+        canvas.innerHTML = "";
+      }
+
+      const zoomModule = this.registry.get('zoom');
+      if (zoomModule && typeof zoomModule.garantirStageContainer === 'function') {
+        zoomModule.garantirStageContainer();
+      }
+
       this.carregarElementosCanvas();
     });
 
@@ -469,9 +480,12 @@ class AppEngine {
         });
       }
 
+      const stage = document.getElementById("canvas-stage");
       const canvas = document.getElementById("canvas");
-      if (canvas) canvas.innerHTML = "";
+      if (stage) stage.innerHTML = "";
+      else if (canvas) canvas.innerHTML = "";
 
+      bus.emit('canvas:block-created');
       console.log("Reset total do Canvas executado com sucesso.");
     } catch (error) {
       console.error("Falha crítica durante a purgação de dados do sistema:", error);
@@ -525,9 +539,8 @@ class AppEngine {
   carregarElementosCanvas() {
     console.log("Sincronizando estado geométrico do Canvas...");
 
-    for (let i = 0; i < localStorage.length; i++) {
-      const chave = localStorage.key(i);
-      
+    const chaves = Object.keys(localStorage);
+    for (const chave of chaves) {
       if (chave.startsWith("data_") && chave !== "data_brand_title" && chave !== "data_modules_state" && chave !== "app_modules_state" && chave !== "app_custom_modules" && chave !== "app_canvas_dimensions") {
         try {
           const dadosBloco = JSON.parse(localStorage.getItem(chave));
@@ -548,14 +561,14 @@ class AppEngine {
           }
 
           const estiloOriginal = `top: ${dadosBloco.top || '100px'}; left: ${dadosBloco.left || '100px'};`;
-          const uidReal = chave.replace("data_", "");
+          const uidReal = chave.replace(/^data_/, "");
 
           if (idModuloDono && this.registry.has(idModuloDono)) {
             const moduloInstanciado = this.registry.get(idModuloDono);
             
             if (idModuloDono === 'chart') {
               if (typeof moduloInstanciado.criarBloco === 'function') {
-                moduloInstanciado.criarBloco(uidReal, estiloOriginal, dadosBloco.inputs || dadosBloco.status, dadosBloco.title);
+                moduloInstanciado.criarBloco(uidReal, estiloOriginal, dadosBloco, dadosBloco.title);
               } else if (typeof moduloInstanciado.renderizarBloco === 'function') {
                 moduloInstanciado.renderizarBloco(uidReal, estiloOriginal, dadosBloco.inputs || dadosBloco.status);
               }
@@ -574,6 +587,7 @@ class AppEngine {
         }
       }
     }
+    bus.emit('canvas:block-created');
   }
 
   gerenciarVisibilidadeLabelGerenciamento() {

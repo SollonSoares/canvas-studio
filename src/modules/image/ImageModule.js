@@ -36,7 +36,7 @@ export default class ImageModule extends BaseModule {
   }
 
   criarBloco(id, style, dadosIniciais) {
-    const canvasContainer = document.getElementById("canvas");
+    const canvasContainer = window.CanvasManager?.getContainer ? window.CanvasManager.getContainer() : (document.getElementById("canvas-stage") || document.getElementById("canvas"));
     if (!canvasContainer) return;
 
     const blocoAntigo = document.getElementById("block_" + id);
@@ -48,9 +48,13 @@ export default class ImageModule extends BaseModule {
     div.dataset.id = id;
     div.dataset.type = "image";
     
-    if (dadosIniciais?.width) div.style.width = dadosIniciais.width + "px";
-    if (dadosIniciais?.height) div.style.height = dadosIniciais.height + "px";
-    div.style.cssText += style || "top:100px; left:100px;";
+    if (dadosIniciais?.width) div.style.width = typeof dadosIniciais.width === 'number' ? `${dadosIniciais.width}px` : dadosIniciais.width;
+    if (dadosIniciais?.height) div.style.height = typeof dadosIniciais.height === 'number' ? `${dadosIniciais.height}px` : dadosIniciais.height;
+    if (dadosIniciais?.top) div.style.top = typeof dadosIniciais.top === 'number' ? `${dadosIniciais.top}px` : dadosIniciais.top;
+    if (dadosIniciais?.left) div.style.left = typeof dadosIniciais.left === 'number' ? `${dadosIniciais.left}px` : dadosIniciais.left;
+    if (style && (!dadosIniciais?.top || !dadosIniciais?.left)) {
+      div.style.cssText += style;
+    }
 
     const titulo = dadosIniciais?.title || "Imagem";
     const urlImagem = dadosIniciais?.url || "";

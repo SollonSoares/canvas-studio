@@ -7,6 +7,10 @@ let highestZIndex = 100;
 let activeDragCleanup = null;
 
 export class CanvasManager {
+  static getContainer() {
+    return document.getElementById('canvas-stage') || document.getElementById('canvas');
+  }
+
   static makeDraggable(element, onDragEndCallback) {
     const handle = element.querySelector('.drag-handle');
     if (!handle) return;

@@ -33,7 +33,7 @@ export default class ResizeModule extends BaseModule {
 
     const canvas = document.getElementById('canvas');
     if (canvas) {
-      this.observer.observe(canvas, { childList: true, subtree: false });
+      this.observer.observe(canvas, { childList: true, subtree: true });
     }
 
     setTimeout(() => this.varrerCanvasForçado(), 50);

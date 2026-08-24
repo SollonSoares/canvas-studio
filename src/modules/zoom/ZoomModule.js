@@ -80,31 +80,45 @@ export default class ZoomModule extends BaseModule {
    */
   garantirStageContainer() {
     const canvas = document.getElementById("canvas");
-    if (!canvas) return;
+    if (!canvas) return null;
 
     let stage = document.getElementById("canvas-stage");
-    if (!stage) {
+    if (!stage || stage.parentElement !== canvas) {
+      if (stage && stage.parentElement) {
+        stage.remove();
+      }
       stage = document.createElement("div");
       stage.id = "canvas-stage";
       
-      // Move blocos já existentes para o stage
+      // Move blocos soltos já existentes para o stage
       const existingBlocks = Array.from(canvas.querySelectorAll(".draggable"));
       canvas.appendChild(stage);
-      existingBlocks.forEach(b => stage.appendChild(b));
+      existingBlocks.forEach(b => {
+        if (b.parentElement === canvas) {
+          stage.appendChild(b);
+        }
+      });
     }
 
-    // Observa novos blocos adicionados diretamente ao #canvas e redireciona para #canvas-stage
+    if (this.observer) {
+      this.observer.disconnect();
+    }
+
+    // Observa novos blocos adicionados diretamente ao #canvas e redireciona para o #canvas-stage ativo
     this.observer = new MutationObserver((mutations) => {
+      const currentStage = document.getElementById("canvas-stage");
+      if (!currentStage || currentStage.parentElement !== canvas) return;
       mutations.forEach(m => {
         m.addedNodes.forEach(node => {
-          if (node.nodeType === 1 && node.classList.contains("draggable") && node.parentElement === canvas) {
-            stage.appendChild(node);
+          if (node.nodeType === 1 && node.classList && node.classList.contains("draggable") && node.parentElement === canvas) {
+            currentStage.appendChild(node);
           }
         });
       });
     });
 
     this.observer.observe(canvas, { childList: true });
+    return stage;
   }
 
   /**
