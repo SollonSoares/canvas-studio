@@ -292,6 +292,7 @@ export default class ChartModule extends BaseModule {
     };
 
     div.querySelectorAll("input").forEach(inp => inp.addEventListener("input", atualizarEGravar));
+    div.addEventListener("input", atualizarEGravar);
 
     div.querySelector(".close-btn").onclick = () => {
       localStorage.removeItem("data_" + uid);

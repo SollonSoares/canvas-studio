@@ -77,16 +77,16 @@ export default class ResizeModule extends BaseModule {
         const deltaX = (lastEvent.clientX - inicioX) / zoom;
         const deltaY = (lastEvent.clientY - inicioY) / zoom;
 
-        const novaLargura = Math.max(160, inicioLargura + deltaX);
-        const novaAltura = Math.max(100, inicioAltura + deltaY);
+        const novaLargura = Math.max(140, inicioLargura + deltaX);
+        const novaAltura = Math.max(70, inicioAltura + deltaY);
 
         bloco.style.width = novaLargura + 'px';
         bloco.style.height = novaAltura + 'px';
 
         const canvasInterno = bloco.querySelector('canvas');
         if (canvasInterno) {
-          canvasInterno.width = Math.max(100, novaLargura - 20);
-          canvasInterno.height = Math.max(100, novaAltura - 160);
+          canvasInterno.width = Math.max(80, Math.min(novaLargura - 20, 240));
+          canvasInterno.height = Math.max(80, Math.min(novaAltura - 180, 200));
         }
 
         bloco.dispatchEvent(new Event('input', { bubbles: true }));

@@ -161,6 +161,7 @@ export default class DropdownModule extends BaseModule {
     };
 
     inputTitulo.addEventListener("input", salvarEstado);
+    div.addEventListener("input", salvarEstado);
 
     inputTarget.addEventListener("input", () => {
       salvarEstado();
