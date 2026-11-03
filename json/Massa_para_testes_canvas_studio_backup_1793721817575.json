@@ -1,0 +1,63 @@
+{
+  "metadata": {
+    "versao": "2.0.0",
+    "timestamp": 1793721817575,
+    "brand": "Massa para testes"
+  },
+  "blocos": {
+    "data_txt_1793386688451": {
+      "top": "0px",
+      "left": "380px",
+      "width": 1072,
+      "height": 500,
+      "type": "text",
+      "title": "contratação",
+      "campos": [
+        {
+          "html": "<span data-teams=\"true\"><p>NU_CPF_CLIENTE, NU_CARTAO_CLIENTE, NU_CONTA_CARTAO_CLIENTE,&nbsp;NU_TELEFONE_CARTAO_CLIENTE,&nbsp;IC_SITUACAO_CARTAO,&nbsp;NU_CONTA_CARTAO_CLIENTE, OBERVACAO</p><p><br></p><p>77028826899,<span style=\"white-space:pre\">\t</span>6516710216922136, 61984212868, 2, 200032600</p><p><br></p><p>80377967955<span style=\"white-space:pre\">\t</span>4593830005966499<span style=\"white-space:pre\">\t</span>61981733720<span style=\"white-space:pre\">\t</span>2<span style=\"white-space:pre\">\t</span>200024397</p><p>80377967955<span style=\"white-space:pre\">\t</span>4219600005018243<span style=\"white-space:pre\">\t</span>61984212868<span style=\"white-space:pre\">\t</span>2<span style=\"white-space:pre\">\t</span>200031369</p><p>80377967955<span style=\"white-space:pre\">\t</span>5529370009675487<span style=\"white-space:pre\">\t</span>61981459067<span style=\"white-space:pre\">\t</span>2<span style=\"white-space:pre\">\t</span>200031370</p><p><br></p><p>66519721034<span style=\"white-space:pre\">\t</span>6550070002755738<span style=\"white-space:pre\">\t</span>61992293313<span style=\"white-space:pre\">\t</span>2<span style=\"white-space:pre\">\t</span>200022626</p><p>66519721034<span style=\"white-space:pre\">\t</span>4219570002531227<span style=\"white-space:pre\">\t</span>61999755798<span style=\"white-space:pre\">\t</span>2<span style=\"white-space:pre\">\t</span>200017662</p><p>66519721034<span style=\"white-space:pre\">\t</span>4593602133983799<span style=\"white-space:pre\">\t</span>61981364647<span style=\"white-space:pre\">\t</span>2<span style=\"white-space:pre\">\t</span>200000662</p><p>66519721034<span style=\"white-space:pre\">\t</span>5126820008511809<span style=\"white-space:pre\">\t</span>0<span style=\"white-space:pre\">\t</span>2<span style=\"white-space:pre\">\t</span>200001276</p><p>66519721034<span style=\"white-space:pre\">\t</span>5090450001151353<span style=\"white-space:pre\">\t</span>61984212868<span style=\"white-space:pre\">\t</span>2<span style=\"white-space:pre\">\t</span>200030418</p><p>66519721034<span style=\"white-space:pre\">\t</span>5405930003152111<span style=\"white-space:pre\">\t</span>61992000627<span style=\"white-space:pre\">\t</span>2<span style=\"white-space:pre\">\t</span>200031373</p><p>66519721034<span style=\"white-space:pre\">\t</span>6516770008126221<span style=\"white-space:pre\">\t</span>61992000627<span style=\"white-space:pre\">\t</span>2<span style=\"white-space:pre\">\t</span>200031372</p><p>66519721034<span style=\"white-space:pre\">\t</span>6516590005072818<span style=\"white-space:pre\">\t</span>61981277724<span style=\"white-space:pre\">\t</span>2<span style=\"white-space:pre\">\t</span>200034212</p><p>66519721034<span style=\"white-space:pre\">\t</span>4593830008213717<span style=\"white-space:pre\">\t</span>61984212868<span style=\"white-space:pre\">\t</span>2<span style=\"white-space:pre\">\t</span>200030433</p><p>66519721034<span style=\"white-space:pre\">\t</span>5529370008637736<span style=\"white-space:pre\">\t</span>61984212868<span style=\"white-space:pre\">\t</span>2<span style=\"white-space:pre\">\t</span>200033029</p><p>66519721034<span style=\"white-space:pre\">\t</span>5529370003711338<span style=\"white-space:pre\">\t</span>61999755798<span style=\"white-space:pre\">\t</span>2<span style=\"white-space:pre\">\t</span>200033160</p><p><br></p><p>43637762854</p><p>21477382208</p><p>44536741712, 112233</p></span>",
+          "className": "sub-campo"
+        },
+        {
+          "html": "",
+          "className": "sub-campo"
+        }
+      ]
+    },
+    "data_txt_1793717123777": {
+      "top": "300px",
+      "left": "80px",
+      "width": 260,
+      "height": 180,
+      "type": "text",
+      "title": "Novo Bloco",
+      "campos": [
+        {
+          "html": "",
+          "className": "sub-campo"
+        },
+        {
+          "html": "",
+          "className": "sub-campo"
+        }
+      ]
+    },
+    "data_txt_1793398529443": {
+      "top": "100px",
+      "left": "100px",
+      "width": 260,
+      "height": 180,
+      "type": "text",
+      "title": "Novo Bloco",
+      "campos": [
+        {
+          "html": "Dispositivo - Android",
+          "className": "sub-campo"
+        },
+        {
+          "html": "f0da87e0084e8300",
+          "className": "sub-campo"
+        }
+      ]
+    }
+  }
+}
