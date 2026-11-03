@@ -1,6 +1,7 @@
 /**
  * MODULES: PortabilityModule.js
- * Importação e exportação de backups de dados estruturados em arquivo JSON.
+ * Importação e exportação de backups de dados estruturados em arquivo JSON,
+ * além de envio livre de quaisquer arquivos para a pasta "outros".
  * Suporta formatos legados e modulares com recarga automática do Canvas.
  */
 import { BaseModule } from '../BaseModule.js';
@@ -18,7 +19,7 @@ export default class PortabilityModule extends BaseModule {
     const containerBotoes = document.getElementById("container-portabilidade-botoes") || document.getElementById("container-gerenciamento-botoes");
     if (!containerBotoes) return;
 
-    // Input de arquivo invisível
+    // Input de arquivo invisível para importar JSON
     const hiddenInput = document.createElement("input");
     hiddenInput.type = "file";
     hiddenInput.accept = ".json,application/json";
@@ -26,7 +27,14 @@ export default class PortabilityModule extends BaseModule {
     hiddenInput.onchange = (e) => this.tratarArquivoImportado(e);
     containerBotoes.appendChild(this.TRACK_UI(hiddenInput));
 
-    // Botão Importar (aciona o input de arquivo diretamente ao clicar)
+    // Input de arquivo invisível para subir qualquer arquivo na pasta "outros"
+    const hiddenInputOutros = document.createElement("input");
+    hiddenInputOutros.type = "file";
+    hiddenInputOutros.multiple = true;
+    hiddenInputOutros.style.display = "none";
+    containerBotoes.appendChild(this.TRACK_UI(hiddenInputOutros));
+
+    // Botão Importar
     const btnImportar = document.createElement("button");
     btnImportar.type = "button";
     btnImportar.id = "btn-import-json";
@@ -51,6 +59,117 @@ export default class PortabilityModule extends BaseModule {
       this.tratarExportacaoCompleta();
     };
     containerBotoes.appendChild(this.TRACK_UI(btnExportar));
+
+    // Botão Subir em "outros" (aceita qualquer tipo de arquivo)
+    const btnUploadOutros = document.createElement("button");
+    btnUploadOutros.type = "button";
+    btnUploadOutros.id = "btn-upload-outros";
+    btnUploadOutros.className = "btn btn-secondary";
+    btnUploadOutros.style.gridColumn = "1 / -1";
+    btnUploadOutros.innerHTML = createButtonContent('upload', 'Subir em "outros"');
+    btnUploadOutros.title = "Enviar qualquer arquivo para a pasta 'outros' (GitHub ou pasta local)";
+    btnUploadOutros.onclick = (e) => {
+      e.preventDefault();
+      this.tratarUploadOutros(hiddenInputOutros);
+    };
+    containerBotoes.appendChild(this.TRACK_UI(btnUploadOutros));
+  }
+
+  /**
+   * Abre o diálogo para enviar qualquer arquivo para a pasta "outros"
+   * (no GitHub ou em uma pasta local).
+   */
+  tratarUploadOutros(hiddenInputOutros) {
+    document.getElementById("upload-outros-modal")?.remove();
+
+    const temFSA = typeof window.showDirectoryPicker === "function";
+    const gh = GitHubSync.isConfigured() ? GitHubSync.getConfig() : null;
+    const modal = document.createElement("div");
+    modal.id = "upload-outros-modal";
+    modal.className = "custom-modal";
+    modal.style.display = "flex";
+    modal.innerHTML = `
+      <div class="modal-content" style="width: 440px;">
+        <div class="modal-header">
+          <h3>Subir arquivo em "outros"</h3>
+          <button type="button" class="btn-close-style" data-destino-outros="fechar" title="Fechar">${Icons.close}</button>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          ${gh ? `<button type="button" class="btn btn-primary" data-destino-outros="github" style="justify-content:center;">Enviar para o GitHub (${gh.repo}/outros)</button>` : ""}
+          <button type="button" class="btn ${gh ? "btn-secondary" : "btn-primary"}" data-destino-outros="local" style="justify-content:center;" ${temFSA ? "" : "disabled"}>Salvar na pasta "outros" local…</button>
+          <small style="opacity:.7; line-height:1.4;">
+            Aceita qualquer tipo de arquivo (imagens, PDFs, ZIP, scripts, áudio, etc.). Você pode selecionar um ou vários arquivos de uma vez.
+            ${gh ? "" : "<br>Para enviar ao GitHub, cadastre o token em Configurações."}
+          </small>
+        </div>
+      </div>`;
+
+    const fechar = () => modal.remove();
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) return fechar();
+      const destino = e.target.closest("[data-destino-outros]")?.dataset.destinoOutros;
+      if (!destino) return;
+      fechar();
+      if (destino === "fechar") return;
+
+      hiddenInputOutros.value = "";
+      hiddenInputOutros.onchange = async (ev) => {
+        const arquivos = Array.from(ev.target.files || []);
+        ev.target.value = "";
+        if (arquivos.length === 0) return;
+        await this.executarUploadOutros(destino, arquivos);
+      };
+      hiddenInputOutros.click();
+    });
+
+    document.body.appendChild(modal);
+  }
+
+  async executarUploadOutros(destino, arquivos) {
+    try {
+      if (destino === "github") {
+        const urls = [];
+        for (const arq of arquivos) {
+          try {
+            const url = await GitHubSync.uploadArquivo("outros", arq);
+            urls.push(url);
+          } catch (err) {
+            if (err?.conflito) {
+              const substituir = confirm(`O arquivo "${arq.name}" já existe em "outros/". Deseja substituir?`);
+              if (substituir) {
+                const url = await GitHubSync.uploadArquivo("outros", arq, { sobrescrever: true });
+                urls.push(url);
+              }
+            } else {
+              throw err;
+            }
+          }
+        }
+        if (urls.length > 0) {
+          alert(`✅ ${urls.length} arquivo(s) enviado(s) para "outros/" no GitHub:\n${urls.join("\n")}`);
+        }
+        return;
+      }
+
+      if (destino === "local") {
+        let pasta = await window.showDirectoryPicker({ id: "canvas-studio-export", mode: "readwrite" });
+        if (pasta.name.toLowerCase() !== "outros") {
+          pasta = await pasta.getDirectoryHandle("outros", { create: true });
+        }
+        for (const arq of arquivos) {
+          const nome = arq.name.replace(/[\\/]/g, "_");
+          const handle = await pasta.getFileHandle(nome, { create: true });
+          const escrita = await handle.createWritable();
+          await escrita.write(arq);
+          await escrita.close();
+        }
+        alert(`✅ ${arquivos.length} arquivo(s) salvo(s) na pasta "${pasta.name}/".`);
+      }
+    } catch (err) {
+      if (err?.name === "AbortError") return;
+      console.error("Falha ao enviar arquivo(s) para 'outros':", err);
+      alert("❌ Erro ao enviar para 'outros': " + (err?.message || err));
+    }
   }
 
   /**
@@ -273,29 +392,27 @@ export default class PortabilityModule extends BaseModule {
   }
 
   montarPayloadExportacao() {
-    {
-      const payloadExportacao = {
-        metadata: {
-          versao: "2.0.0",
-          timestamp: Date.now(),
-          brand: localStorage.getItem("app_brand_title") || "Naruto RPG"
-        },
-        blocos: {}
-      };
+    const payloadExportacao = {
+      metadata: {
+        versao: "2.0.0",
+        timestamp: Date.now(),
+        brand: localStorage.getItem("app_brand_title") || "Naruto RPG"
+      },
+      blocos: {}
+    };
 
-      for (let i = 0; i < localStorage.length; i++) {
-        const chave = localStorage.key(i);
-        if (chave.startsWith("data_") && chave !== "data_brand_title" && chave !== "data_modules_state" && chave !== "app_modules_state" && chave !== "app_custom_modules" && chave !== "app_canvas_dimensions") {
-          try {
-            payloadExportacao.blocos[chave] = JSON.parse(localStorage.getItem(chave));
-          } catch (e) {
-            console.warn("Chave ignorada no payload:", chave);
-          }
+    for (let i = 0; i < localStorage.length; i++) {
+      const chave = localStorage.key(i);
+      if (chave.startsWith("data_") && chave !== "data_brand_title" && chave !== "data_modules_state" && chave !== "app_modules_state" && chave !== "app_custom_modules" && chave !== "app_canvas_dimensions") {
+        try {
+          payloadExportacao.blocos[chave] = JSON.parse(localStorage.getItem(chave));
+        } catch (e) {
+          console.warn("Chave ignorada no payload:", chave);
         }
       }
-
-      return payloadExportacao;
     }
+
+    return payloadExportacao;
   }
 
   tratarArquivoImportado(event) {
@@ -312,77 +429,73 @@ export default class PortabilityModule extends BaseModule {
 
   /** Valida, confirma e carrega no Canvas o conteúdo textual de um backup JSON. */
   importarTexto(texto) {
-    {
-      {
-        try {
-        const conteudo = JSON.parse(texto);
-        if (!conteudo) {
-          throw new Error("Arquivo vazio ou inválido.");
-        }
+    try {
+      const conteudo = JSON.parse(texto);
+      if (!conteudo) {
+        throw new Error("Arquivo vazio ou inválido.");
+      }
 
-        const confirmacao = confirm("Deseja importar este backup? Os blocos serão carregados no Canvas.");
-        if (!confirmacao) return;
+      const confirmacao = confirm("Deseja importar este backup? Os blocos serão carregados no Canvas.");
+      if (!confirmacao) return;
 
-        let blocosImportados = {};
-        let brandTitle = null;
+      let blocosImportados = {};
+      let brandTitle = null;
 
-        if (conteudo.blocos && typeof conteudo.blocos === 'object') {
-          // Formato modular moderno: { metadata: {...}, blocos: { data_...: {...} } }
-          blocosImportados = conteudo.blocos;
-          brandTitle = conteudo.metadata?.brand;
-        } else if (Array.isArray(conteudo)) {
-          // Formato legado em Array (oldestscript.js): [ { type: "text", ... }, ... ]
-          conteudo.forEach((item, idx) => {
-            const uid = item.imgId || item.id || `import_${Date.now()}_${idx}`;
-            const key = uid.startsWith('data_') ? uid : `data_${uid}`;
-            blocosImportados[key] = item;
-          });
-        } else if (typeof conteudo === 'object') {
-          // Formato de dicionário direto: { data_1: {...}, data_2: {...} }
-          Object.entries(conteudo).forEach(([k, v]) => {
-            if (k === 'metadata' || k === 'app_brand_title') {
-              if (v?.brand) brandTitle = v.brand;
-            } else {
-              const key = k.startsWith('data_') ? k : `data_${k}`;
-              blocosImportados[key] = v;
-            }
-          });
-        }
-
-        const totalChaves = Object.keys(blocosImportados).length;
-        if (totalChaves === 0) {
-          alert("Nenhum bloco válido encontrado no arquivo JSON.");
-          return;
-        }
-
-        // Limpa blocos de dados anteriores do localStorage para carregar o backup fielmente
-        Object.keys(localStorage).forEach(chave => {
-          if (chave.startsWith("data_") && chave !== "data_brand_title" && chave !== "data_modules_state" && chave !== "app_modules_state" && chave !== "app_custom_modules" && chave !== "app_canvas_dimensions") {
-            localStorage.removeItem(chave);
+      if (conteudo.blocos && typeof conteudo.blocos === 'object') {
+        // Formato modular moderno: { metadata: {...}, blocos: { data_...: {...} } }
+        blocosImportados = conteudo.blocos;
+        brandTitle = conteudo.metadata?.brand;
+      } else if (Array.isArray(conteudo)) {
+        // Formato legado em Array (oldestscript.js): [ { type: "text", ... }, ... ]
+        conteudo.forEach((item, idx) => {
+          const uid = item.imgId || item.id || `import_${Date.now()}_${idx}`;
+          const key = uid.startsWith('data_') ? uid : `data_${uid}`;
+          blocosImportados[key] = item;
+        });
+      } else if (typeof conteudo === 'object') {
+        // Formato de dicionário direto: { data_1: {...}, data_2: {...} }
+        Object.entries(conteudo).forEach(([k, v]) => {
+          if (k === 'metadata' || k === 'app_brand_title') {
+            if (v?.brand) brandTitle = v.brand;
+          } else {
+            const key = k.startsWith('data_') ? k : `data_${k}`;
+            blocosImportados[key] = v;
           }
         });
+      }
 
-        // Grava os novos blocos no localStorage garantindo o prefixo data_
-        Object.entries(blocosImportados).forEach(([chave, valor]) => {
-          const key = chave.startsWith('data_') ? chave : `data_${chave}`;
-          localStorage.setItem(key, typeof valor === 'string' ? valor : JSON.stringify(valor));
-        });
+      const totalChaves = Object.keys(blocosImportados).length;
+      if (totalChaves === 0) {
+        alert("Nenhum bloco válido encontrado no arquivo JSON.");
+        return;
+      }
 
-        if (brandTitle) {
-          localStorage.setItem("app_brand_title", brandTitle);
-          const brandEl = document.getElementById("brand-title");
-          if (brandEl) brandEl.innerText = brandTitle;
+      // Limpa blocos de dados anteriores do localStorage para carregar o backup fielmente
+      Object.keys(localStorage).forEach(chave => {
+        if (chave.startsWith("data_") && chave !== "data_brand_title" && chave !== "data_modules_state" && chave !== "app_modules_state" && chave !== "app_custom_modules" && chave !== "app_canvas_dimensions") {
+          localStorage.removeItem(chave);
         }
+      });
 
-        // Emite o evento global para sincronizar o Canvas na hora
-        bus.emit('canvas:reload-request');
+      // Grava os novos blocos no localStorage garantindo o prefixo data_
+      Object.entries(blocosImportados).forEach(([chave, valor]) => {
+        const key = chave.startsWith('data_') ? chave : `data_${chave}`;
+        localStorage.setItem(key, typeof valor === 'string' ? valor : JSON.stringify(valor));
+      });
 
-        alert(`✅ ${totalChaves} bloco(s) importado(s) com sucesso!`);
-      } catch (err) {
-        console.error("Falha ao importar JSON:", err);
-        alert("❌ Erro na leitura do arquivo de backup JSON.");
+      if (brandTitle) {
+        localStorage.setItem("app_brand_title", brandTitle);
+        const brandEl = document.getElementById("brand-title");
+        if (brandEl) brandEl.innerText = brandTitle;
       }
-      }
+
+      // Emite o evento global para sincronizar o Canvas na hora
+      bus.emit('canvas:reload-request');
+
+      alert(`✅ ${totalChaves} bloco(s) importado(s) com sucesso!`);
+    } catch (err) {
+      console.error("Falha ao importar JSON:", err);
+      alert("❌ Erro na leitura do arquivo de backup JSON.");
     }
   }
 }

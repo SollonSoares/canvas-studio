@@ -1,6 +1,6 @@
 /**
  * CORE: GitHubSync.js
- * Envio de backups JSON para uma pasta do repositório via GitHub REST API.
+ * Envio de backups JSON e arquivos avulsos para o repositório via GitHub REST API.
  * O token NUNCA fica no código: é digitado manualmente em Configurações e
  * guardado apenas no localStorage do navegador do usuário (chave app_github_sync,
  * fora do prefixo data_ e, portanto, fora dos backups exportados).
@@ -104,6 +104,58 @@ export const GitHubSync = {
         : resp.status === 403 || resp.status === 404 ? " (verifique repositório, branch e permissão 'Contents: write' do token)"
         : "";
       throw new Error(`GitHub ${resp.status}: ${dados.message || "falha no envio"}${dica}`);
+    }
+    return dados.content?.html_url || `https://github.com/${repo}/blob/${branch}/${caminho}`;
+  },
+
+  /**
+   * Envia qualquer arquivo (File/Blob, texto ou binário) para <pasta>/<nome> no repositório.
+   * Suporta sobrescrita buscando o sha existente quando sobrescrever=true.
+   */
+  async uploadArquivo(pasta, arquivo, { sobrescrever = false } = {}) {
+    const { repo, branch, token } = this.getConfig();
+    if (!token) throw new Error("Token do GitHub não configurado. Cadastre em Configurações.");
+
+    const pastaLimpa = (pasta || "outros").trim().replace(/^\/+|\/+$/g, "");
+    const nome = arquivo.name.replace(/[\\/]/g, "_");
+    const caminho = pastaLimpa ? `${pastaLimpa}/${nome}` : nome;
+    const url = `https://api.github.com/repos/${repo}/contents/${encodeURI(caminho)}`;
+
+    const base64 = await new Promise((resolve, reject) => {
+      const leitor = new FileReader();
+      leitor.onload = () => {
+        const res = String(leitor.result || "");
+        const idx = res.indexOf(",");
+        resolve(idx >= 0 ? res.slice(idx + 1) : res);
+      };
+      leitor.onerror = () => reject(new Error("Não foi possível ler o arquivo."));
+      leitor.readAsDataURL(arquivo);
+    });
+
+    const corpo = {
+      message: `upload(${pastaLimpa || "root"}): ${nome}`,
+      content: base64,
+      branch
+    };
+
+    if (sobrescrever) {
+      const atual = await fetch(`${url}?ref=${encodeURIComponent(branch)}`, { headers: this._headers() });
+      if (atual.ok) {
+        const info = await atual.json().catch(() => ({}));
+        if (info.sha) corpo.sha = info.sha;
+      }
+    }
+
+    const resp = await fetch(url, {
+      method: "PUT",
+      headers: { ...this._headers(), "Content-Type": "application/json" },
+      body: JSON.stringify(corpo)
+    });
+    const dados = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      const err = this._erro(resp.status, dados.message);
+      err.conflito = resp.status === 422 || resp.status === 409;
+      throw err;
     }
     return dados.content?.html_url || `https://github.com/${repo}/blob/${branch}/${caminho}`;
   },
