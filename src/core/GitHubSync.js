@@ -35,6 +35,46 @@ export const GitHubSync = {
     localStorage.removeItem(STORAGE_KEY);
   },
 
+  _headers(raw = false) {
+    const { token } = this.getConfig();
+    const h = {
+      "Accept": raw ? "application/vnd.github.raw+json" : "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28"
+    };
+    if (token) h["Authorization"] = `Bearer ${token}`;
+    return h;
+  },
+
+  _erro(status, mensagem) {
+    const dica = status === 401 ? " (token inválido ou expirado)"
+      : status === 403 || status === 404 ? " (verifique repositório, branch/pasta e permissões do token)"
+      : "";
+    return new Error(`GitHub ${status}: ${mensagem || "falha na requisição"}${dica}`);
+  },
+
+  /** Lista os .json da pasta configurada (mais recentes primeiro). Funciona sem token em repositório público. */
+  async listJSON() {
+    const { repo, branch, folder } = this.getConfig();
+    const caminho = folder ? `/${encodeURI(folder)}` : "";
+    const resp = await fetch(`https://api.github.com/repos/${repo}/contents${caminho}?ref=${encodeURIComponent(branch)}`, { headers: this._headers() });
+    const dados = await resp.json().catch(() => ({}));
+    if (!resp.ok) throw this._erro(resp.status, dados.message);
+    return (Array.isArray(dados) ? dados : [])
+      .filter(f => f.type === "file" && /\.json$/i.test(f.name))
+      .sort((a, b) => b.name.localeCompare(a.name));
+  },
+
+  /** Baixa o conteúdo de texto de um arquivo do repositório. */
+  async downloadText(path) {
+    const { repo, branch } = this.getConfig();
+    const resp = await fetch(`https://api.github.com/repos/${repo}/contents/${encodeURI(path)}?ref=${encodeURIComponent(branch)}`, { headers: this._headers(true) });
+    if (!resp.ok) {
+      const dados = await resp.json().catch(() => ({}));
+      throw this._erro(resp.status, dados.message);
+    }
+    return resp.text();
+  },
+
   /** Cria o arquivo em <folder>/<nome> no repositório. Retorna a URL do arquivo. */
   async uploadJSON(nomeArquivo, conteudo) {
     const { repo, branch, folder, token } = this.getConfig();

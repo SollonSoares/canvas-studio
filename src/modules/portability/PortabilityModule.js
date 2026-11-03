@@ -35,8 +35,7 @@ export default class PortabilityModule extends BaseModule {
     btnImportar.title = "Importar arquivo de backup JSON";
     btnImportar.onclick = (e) => {
       e.preventDefault();
-      hiddenInput.value = "";
-      hiddenInput.click();
+      this.tratarImportacaoCompleta(hiddenInput);
     };
     containerBotoes.appendChild(this.TRACK_UI(btnImportar));
 
@@ -52,6 +51,123 @@ export default class PortabilityModule extends BaseModule {
       this.tratarExportacaoCompleta();
     };
     containerBotoes.appendChild(this.TRACK_UI(btnExportar));
+  }
+
+  /**
+   * Abre o diálogo de origem da importação:
+   * pasta json do GitHub, pasta local ou seletor de arquivo padrão.
+   */
+  tratarImportacaoCompleta(hiddenInput) {
+    document.getElementById("import-json-modal")?.remove();
+
+    const temFSA = typeof window.showDirectoryPicker === "function";
+    const gh = GitHubSync.getConfig();
+    const modal = document.createElement("div");
+    modal.id = "import-json-modal";
+    modal.className = "custom-modal";
+    modal.style.display = "flex";
+    modal.innerHTML = `
+      <div class="modal-content" style="width: 440px;">
+        <div class="modal-header">
+          <h3>Importar backup JSON</h3>
+          <button type="button" class="btn-close-style" data-origem="fechar" title="Fechar">${Icons.close}</button>
+        </div>
+        <div id="import-json-body" style="display:flex; flex-direction:column; gap:10px;"></div>
+      </div>`;
+    const corpo = modal.querySelector("#import-json-body");
+    const fechar = () => modal.remove();
+
+    const mostrarOrigens = () => {
+      corpo.innerHTML = `
+        <button type="button" class="btn btn-primary" data-origem="github" style="justify-content:center;">Buscar no GitHub (${gh.repo}/${gh.folder})</button>
+        <button type="button" class="btn btn-secondary" data-origem="pasta" style="justify-content:center;" ${temFSA ? "" : "disabled"}>Escolher pasta local…</button>
+        <button type="button" class="btn btn-secondary" data-origem="arquivo" style="justify-content:center;">Escolher arquivo…</button>
+        <small style="opacity:.7; line-height:1.4;">
+          ${GitHubSync.isConfigured() ? "" : "Sem token, só é possível ler repositórios públicos. "}
+          ${temFSA ? "" : "Escolher pasta exige Chrome ou Edge."}
+        </small>`;
+    };
+
+    // Lista de arquivos clicáveis; cada item carrega o texto sob demanda
+    const mostrarLista = (titulo, itens) => {
+      corpo.innerHTML = `<span class="section-title">${titulo}</span>`;
+      if (itens.length === 0) {
+        corpo.insertAdjacentHTML("beforeend", `<small style="opacity:.7;">Nenhum arquivo .json encontrado.</small>`);
+      }
+      const lista = document.createElement("div");
+      lista.style.cssText = "display:flex; flex-direction:column; gap:6px; max-height:300px; overflow-y:auto;";
+      itens.forEach(item => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "btn btn-secondary";
+        b.style.cssText = "justify-content:flex-start; text-align:left; word-break:break-all;";
+        b.textContent = item.nome;
+        b.onclick = async () => {
+          try {
+            const texto = await item.carregar();
+            fechar();
+            this.importarTexto(texto);
+          } catch (err) {
+            alert("❌ Falha ao ler o arquivo: " + (err?.message || err));
+          }
+        };
+        lista.appendChild(b);
+      });
+      corpo.appendChild(lista);
+      const voltar = document.createElement("button");
+      voltar.type = "button";
+      voltar.className = "btn btn-secondary";
+      voltar.style.justifyContent = "center";
+      voltar.textContent = "Voltar";
+      voltar.onclick = mostrarOrigens;
+      corpo.appendChild(voltar);
+    };
+
+    const abrirGitHub = async () => {
+      corpo.innerHTML = `<small style="opacity:.7;">Buscando arquivos no GitHub…</small>`;
+      try {
+        const arquivos = await GitHubSync.listJSON();
+        mostrarLista(`${gh.repo}/${gh.folder}`, arquivos.map(f => ({
+          nome: f.name,
+          carregar: () => GitHubSync.downloadText(f.path)
+        })));
+      } catch (err) {
+        alert("❌ " + (err?.message || err));
+        mostrarOrigens();
+      }
+    };
+
+    const abrirPastaLocal = async () => {
+      try {
+        const pasta = await window.showDirectoryPicker({ id: "canvas-studio-export", mode: "read" });
+        const itens = [];
+        for await (const [nome, handle] of pasta.entries()) {
+          if (handle.kind === "file" && /\.json$/i.test(nome)) {
+            itens.push({ nome, carregar: async () => (await handle.getFile()).text() });
+          }
+        }
+        itens.sort((a, b) => b.nome.localeCompare(a.nome));
+        mostrarLista(pasta.name, itens);
+      } catch (err) {
+        if (err?.name !== "AbortError") alert("❌ " + (err?.message || err));
+      }
+    };
+
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) return fechar();
+      const origem = e.target.closest("[data-origem]")?.dataset.origem;
+      if (origem === "fechar") fechar();
+      else if (origem === "github") abrirGitHub();
+      else if (origem === "pasta") abrirPastaLocal();
+      else if (origem === "arquivo") {
+        fechar();
+        hiddenInput.value = "";
+        hiddenInput.click();
+      }
+    });
+
+    mostrarOrigens();
+    document.body.appendChild(modal);
   }
 
   /**
@@ -188,8 +304,18 @@ export default class PortabilityModule extends BaseModule {
 
     const leitor = new FileReader();
     leitor.onload = (e) => {
-      try {
-        const conteudo = JSON.parse(e.target.result);
+      this.importarTexto(e.target.result);
+      event.target.value = "";
+    };
+    leitor.readAsText(arquivo);
+  }
+
+  /** Valida, confirma e carrega no Canvas o conteúdo textual de um backup JSON. */
+  importarTexto(texto) {
+    {
+      {
+        try {
+        const conteudo = JSON.parse(texto);
         if (!conteudo) {
           throw new Error("Arquivo vazio ou inválido.");
         }
@@ -256,8 +382,7 @@ export default class PortabilityModule extends BaseModule {
         console.error("Falha ao importar JSON:", err);
         alert("❌ Erro na leitura do arquivo de backup JSON.");
       }
-      event.target.value = "";
-    };
-    leitor.readAsText(arquivo);
+      }
+    }
   }
 }
