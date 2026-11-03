@@ -101,17 +101,21 @@ class AppEngine {
   constructor() {
     this.registry = new Map();
     
-    this.modulesState = JSON.parse(localStorage.getItem('app_modules_state')) || {
+    // Estado inicial de módulos por sessão: Portabilidade e Gráfico Ninja (chart)
+    // iniciam sempre desabilitados até que o usuário os ative manualmente em Configurações.
+    const savedState = JSON.parse(localStorage.getItem('app_modules_state')) || {};
+    this.modulesState = {
       organizer: true,
-      portability: true,
       export: true,
       text: true,
       image: true,
-      chart: true,
       resize: true,
       zoom: true,
       dropdown: true,
-      pdf: true
+      pdf: true,
+      ...savedState,
+      portability: false,
+      chart: false
     };
 
     // Módulos customizados persistidos no localStorage
@@ -127,6 +131,7 @@ class AppEngine {
       this.configurarDimensoesCanvas();
       GitHubSync.bindSettings();
       this.montarPainelModulosUI();
+      this.gerenciarVisibilidadeLabelGerenciamento();
       this.configurarUploadDeModulos();
       this.carregarElementosCanvas();
     } catch (error) {
