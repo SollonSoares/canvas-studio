@@ -7,6 +7,7 @@ import { bus } from './EventBus.js';
 import { CanvasManager } from './CanvasManager.js';
 import { BaseModule } from '../modules/BaseModule.js';
 import { Icons, createButtonContent } from './IconHelper.js';
+import { GitHubSync } from './GitHubSync.js';
 
 // Importação síncrona dos módulos nativos do sistema
 import PortabilityModule from '../modules/portability/PortabilityModule.js';
@@ -122,6 +123,7 @@ class AppEngine {
       this.carregarModulosCustomizados();
       this.bindCoreUIEvents();
       this.configurarDimensoesCanvas();
+      GitHubSync.bindSettings();
       this.montarPainelModulosUI();
       this.configurarUploadDeModulos();
       this.carregarElementosCanvas();

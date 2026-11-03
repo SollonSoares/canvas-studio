@@ -6,6 +6,7 @@
 import { BaseModule } from '../BaseModule.js';
 import { dbManager } from '../../core/DB.js';
 import { bus } from '../../core/EventBus.js';
+import { GitHubSync } from '../../core/GitHubSync.js';
 import { Icons, createButtonContent } from '../../core/IconHelper.js';
 
 export default class PortabilityModule extends BaseModule {
@@ -53,8 +54,110 @@ export default class PortabilityModule extends BaseModule {
     containerBotoes.appendChild(this.TRACK_UI(btnExportar));
   }
 
-  async tratarExportacaoCompleta() {
+  /**
+   * Abre o diálogo de destino da exportação:
+   * pasta "json" do projeto, outra pasta local ou download padrão.
+   */
+  tratarExportacaoCompleta() {
+    document.getElementById("export-json-modal")?.remove();
+
+    const temFSA = typeof window.showDirectoryPicker === "function";
+    const gh = GitHubSync.isConfigured() ? GitHubSync.getConfig() : null;
+    const modal = document.createElement("div");
+    modal.id = "export-json-modal";
+    modal.className = "custom-modal";
+    modal.style.display = "flex";
+    modal.innerHTML = `
+      <div class="modal-content" style="width: 420px;">
+        <div class="modal-header">
+          <h3>Exportar backup JSON</h3>
+          <button type="button" class="btn-close-style" data-destino="fechar" title="Fechar">${Icons.close}</button>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          ${gh ? `<button type="button" class="btn btn-primary" data-destino="github" style="justify-content:center;">Enviar para o GitHub (${gh.repo}/${gh.folder})</button>` : ""}
+          <button type="button" class="btn ${gh ? "btn-secondary" : "btn-primary"}" data-destino="projeto" style="justify-content:center;" ${temFSA ? "" : "disabled"}>Salvar na pasta "json" do projeto</button>
+          <button type="button" class="btn btn-secondary" data-destino="pasta" style="justify-content:center;" ${temFSA ? "" : "disabled"}>Escolher outra pasta local…</button>
+          <button type="button" class="btn btn-secondary" data-destino="download" style="justify-content:center;">Baixar arquivo (Downloads)</button>
+          <small style="opacity:.7; line-height:1.4;">
+            ${gh ? "" : "Para enviar ao GitHub, cadastre o token em Configurações. "}
+            ${temFSA
+              ? 'Na opção do projeto, selecione a <b>raiz do projeto</b>; a subpasta <code>json</code> será criada se não existir.'
+              : 'Seu navegador não suporta escolher pastas (use Chrome ou Edge).'}
+          </small>
+        </div>
+      </div>`;
+
+    const fechar = () => modal.remove();
+    modal.addEventListener("click", async (e) => {
+      if (e.target === modal) return fechar();
+      const destino = e.target.closest("[data-destino]")?.dataset.destino;
+      if (!destino) return;
+      fechar();
+      if (destino !== "fechar") await this.exportarPara(destino);
+    });
+    document.body.appendChild(modal);
+  }
+
+  async exportarPara(destino) {
     try {
+      const json = JSON.stringify(this.montarPayloadExportacao(), null, 2);
+      const nomeArquivo = `${this.prefixoDoTitulo()}canvas_studio_backup_${Date.now()}.json`;
+
+      if (destino === "download") {
+        this.baixarArquivo(json, nomeArquivo);
+        return;
+      }
+
+      if (destino === "github") {
+        const url = await GitHubSync.uploadJSON(nomeArquivo, json);
+        alert(`✅ Backup enviado ao GitHub:\n${url}`);
+        return;
+      }
+
+      let pasta = await window.showDirectoryPicker({ id: "canvas-studio-export", mode: "readwrite" });
+      if (destino === "projeto" && pasta.name.toLowerCase() !== "json") {
+        pasta = await pasta.getDirectoryHandle("json", { create: true });
+      }
+
+      const arquivo = await pasta.getFileHandle(nomeArquivo, { create: true });
+      const escrita = await arquivo.createWritable();
+      await escrita.write(json);
+      await escrita.close();
+      alert(`✅ Backup salvo em "${pasta.name}/${nomeArquivo}".`);
+    } catch (err) {
+      if (err?.name === "AbortError") return; // usuário cancelou o seletor de pasta
+      console.error("Falha ao exportar arquivo JSON:", err);
+      alert("Erro ao exportar dados: " + (err?.message || err));
+    }
+  }
+
+  /**
+   * Converte o título do projeto em prefixo seguro de arquivo.
+   * Ex.: "Age of Empires 4" -> "Age_of_Empires_4_"
+   */
+  prefixoDoTitulo() {
+    const titulo = document.getElementById("brand-title")?.innerText
+      || localStorage.getItem("app_brand_title")
+      || "";
+    const limpo = titulo
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^A-Za-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "");
+    return limpo ? `${limpo}_` : "";
+  }
+
+  baixarArquivo(conteudo, nomeArquivo) {
+    const blob = new Blob([conteudo], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = nomeArquivo;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  montarPayloadExportacao() {
+    {
       const payloadExportacao = {
         metadata: {
           versao: "2.0.0",
@@ -75,16 +178,7 @@ export default class PortabilityModule extends BaseModule {
         }
       }
 
-      const blob = new Blob([JSON.stringify(payloadExportacao, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `canvas_studio_backup_${Date.now()}.json`;
-      link.click();
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error("Falha ao exportar arquivo JSON:", err);
-      alert("Erro ao exportar dados.");
+      return payloadExportacao;
     }
   }
 
