@@ -54,13 +54,20 @@ export const GitHubSync = {
 
   /** Lista os .json da pasta configurada (mais recentes primeiro). Funciona sem token em repositório público. */
   async listJSON() {
-    const { repo, branch, folder } = this.getConfig();
-    const caminho = folder ? `/${encodeURI(folder)}` : "";
+    const { folder } = this.getConfig();
+    return this.listFolder(folder, /\.json$/i);
+  },
+
+  /** Lista os arquivos de uma pasta do repositório (opcionalmente filtrando por regex). */
+  async listFolder(pasta, regexFiltro = null) {
+    const { repo, branch } = this.getConfig();
+    const pastaLimpa = (pasta || "").trim().replace(/^\/+|\/+$/g, "");
+    const caminho = pastaLimpa ? `/${encodeURI(pastaLimpa)}` : "";
     const resp = await fetch(`https://api.github.com/repos/${repo}/contents${caminho}?ref=${encodeURIComponent(branch)}`, { headers: this._headers() });
     const dados = await resp.json().catch(() => ({}));
     if (!resp.ok) throw this._erro(resp.status, dados.message);
     return (Array.isArray(dados) ? dados : [])
-      .filter(f => f.type === "file" && /\.json$/i.test(f.name))
+      .filter(f => f.type === "file" && (!regexFiltro || regexFiltro.test(f.name)))
       .sort((a, b) => b.name.localeCompare(a.name));
   },
 
@@ -73,6 +80,24 @@ export const GitHubSync = {
       throw this._erro(resp.status, dados.message);
     }
     return resp.text();
+  },
+
+  /** Baixa um arquivo binário do repositório e retorna como DataURL (ex.: application/pdf). */
+  async downloadDataURL(path, mimeType = "application/pdf") {
+    const { repo, branch } = this.getConfig();
+    const resp = await fetch(`https://api.github.com/repos/${repo}/contents/${encodeURI(path)}?ref=${encodeURIComponent(branch)}`, { headers: this._headers(true) });
+    if (!resp.ok) {
+      const dados = await resp.json().catch(() => ({}));
+      throw this._erro(resp.status, dados.message);
+    }
+    const buffer = await resp.arrayBuffer();
+    const blob = new Blob([buffer], { type: mimeType });
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error("Falha ao converter arquivo para DataURL."));
+      reader.readAsDataURL(blob);
+    });
   },
 
   /** Cria o arquivo em <folder>/<nome> no repositório. Retorna a URL do arquivo. */

@@ -19,6 +19,7 @@ import OrganizerModule from '../modules/organizer/OrganizerModule.js';
 import ExportModule from '../modules/export/ExportModule.js';
 import ZoomModule from '../modules/zoom/ZoomModule.js';
 import DropdownModule from '../modules/dropdown/DropdownModule.js';
+import PdfModule from '../modules/pdf/PdfModule.js';
 
 // Expõe os contratos e utilitários globais no escopo do navegador (window)
 window.BaseModule = BaseModule;
@@ -109,7 +110,8 @@ class AppEngine {
       chart: true,
       resize: true,
       zoom: true,
-      dropdown: true
+      dropdown: true,
+      pdf: true
     };
 
     // Módulos customizados persistidos no localStorage
@@ -138,6 +140,7 @@ class AppEngine {
     this.registry.set('export', new ExportModule());
     this.registry.set('text', new TextModule());
     this.registry.set('image', new ImageModule());
+    this.registry.set('pdf', new PdfModule());
     this.registry.set('chart', new ChartModule());
     this.registry.set('dropdown', new DropdownModule());
     
