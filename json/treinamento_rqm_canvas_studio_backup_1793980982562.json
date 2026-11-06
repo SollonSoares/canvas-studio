@@ -1,0 +1,27 @@
+{
+  "metadata": {
+    "versao": "2.0.0",
+    "timestamp": 1793980982561,
+    "brand": "treinamento rqm"
+  },
+  "blocos": {
+    "data_txt_1793973053901": {
+      "top": "40px",
+      "left": "40px",
+      "width": 858,
+      "height": 331,
+      "type": "text",
+      "title": "Novo Bloco",
+      "campos": [
+        {
+          "html": "<div>Ao acessar a opção \"ATUAL\"&nbsp;</div><div>na aba \"Faturas\"</div><div><br></div><div><b>O aplicativo deverá exibir automaticamente para o cliente o informe do pagamento mínimo.&nbsp;</b></div><div><i>Atualmente o cliente precisa selecionar o ícone \"i\" ao lado do valor do pagamento mínimo.</i></div><div><br></div><div>O informe deverá ser exibido automaticamente somente uma vez a cada ciclo de fatura.&nbsp;</div><div><br></div><div><font size=\"2\">A opção sugerida:</font></div><div>1. Exibir no primeiro acesso após a fatura Aberta se tornar Atual, ou seja, após o fechamento.</div><div><br></div><div>Resultado esperado: <i>O ícone deverá permanecer sendo exibido para que o cliente o acesso manualmente a qualquer tempo.</i></div><div><i><br></i></div><div><i>Critério de aceite:</i></div><div><i><br></i></div><div><!-- x-tinymce/html -->Quando o cliente visualizar a Fatura Atual daquele mês pela primeira vez, o app Cartões exibe automaticamente o informe do Pagamento Mínimo sem intervenção manual do cliente.<i></i></div><div><br></div>",
+          "className": "sub-campo"
+        },
+        {
+          "html": "<br>",
+          "className": "sub-campo"
+        }
+      ]
+    }
+  }
+}
